@@ -22,13 +22,73 @@ The system supports CSV, GeoJSON, and Excel datasets, with the ability to downlo
 
 ---
 
-## What technologies are used for this project? This project is built with:
-- Vite
-- TypeScript
-- React -
-- shadcn-ui
--  Tailwind CSS
+## Technologies Used
+This project is built with:
+- **Vite** - Build tool and development server
+- **TypeScript** - Type-safe JavaScript
+- **React** - UI library
+- **shadcn/ui** - Component library
+- **Tailwind CSS** - Utility-first CSS framework
+- **React Router** - Client-side routing
+- **Leaflet** - Interactive maps
+- **Recharts** - Data visualization
 
+---
+
+## Development Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd geo-hub
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for production**
+   ```bash
+   npm run build
+   ```
+
+---
+
+## Deployment to GitHub Pages
+
+This project is configured for automatic deployment to GitHub Pages using GitHub Actions.
+
+### Automatic Deployment
+1. Push your changes to the `main` or `master` branch
+2. GitHub Actions will automatically build and deploy your site
+3. Your site will be available at: `https://yourusername.github.io/geo-hub/`
+
+### Manual Deployment
+You can also deploy manually using the gh-pages package:
+
+1. **Install gh-pages** (if not already installed)
+   ```bash
+   npm install --save-dev gh-pages
+   ```
+
+2. **Deploy to GitHub Pages**
+   ```bash
+   npm run deploy
+   ```
+
+### GitHub Pages Setup
+1. Go to your repository settings on GitHub
+2. Navigate to **Pages** section
+3. Under **Source**, select **GitHub Actions**
+4. The workflow will handle the rest automatically
+
+---
 
 ## License
 

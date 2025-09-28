@@ -5,6 +5,8 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // Set base path for GitHub Pages deployment
+  base: process.env.NODE_ENV === 'production' ? '/geo-hub/' : '/',
   server: {
     host: "::",
     port: 8080,
@@ -17,5 +19,10 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
   },
 }));
