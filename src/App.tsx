@@ -108,7 +108,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/anambra-geo-hub">
         {/* ✅ ensures page scroll resets on route change */}
         <ScrollToTop />
         <div className="min-h-screen flex flex-col">
