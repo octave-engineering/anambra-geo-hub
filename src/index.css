@@ -1,0 +1,218 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Anambra GeoHub Design System - Amber & White Theme */
+
+@layer base {
+  :root {
+    /* Anambra Amber Color Palette */
+    --background: 0 0% 100%;
+    --foreground: 20 14.3% 4.1%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+
+    /* Primary: Anambra Golden Orange */
+    --primary: 39 100% 50%;
+    --primary-foreground: 0 0% 13%;
+    --primary-glow: 39 100% 70%;
+    --primary-dark: 39 100% 40%;
+
+    /* Secondary: Warm Gold */
+    --secondary: 51 100% 95%;
+    --secondary-foreground: 45 92% 45%;
+
+    --muted: 45 100% 97%;
+    --muted-foreground: 45 5.9% 49.1%;
+
+    --accent: 45 100% 90%;
+    --accent-foreground: 45 92% 35%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 45 20% 90%;
+    --input: 45 20% 95%;
+    --ring: 39 100% 50%;
+
+    /* Health Data Colors */
+    --health-primary: 45 96% 53%;
+    --health-secondary: 142 76% 36%;
+    --health-tertiary: 221 83% 53%;
+    --health-quaternary: 348 83% 47%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(45 96% 53%), hsl(45 100% 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(45 96% 53%) 0%, hsl(51 100% 60%) 50%, hsl(45 100% 70%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(45 100% 98%) 100%);
+    
+    /* Anambra Map Background */
+    --anambra-map-overlay: rgba(255, 170, 0, 0.05);
+    
+    /* Shadows */
+    --shadow-amber: 0 10px 30px -10px hsl(45 96% 53% / 0.3);
+    --shadow-glow: 0 0 40px hsl(45 100% 65% / 0.4);
+    --shadow-card: 0 4px 20px -4px hsl(45 96% 53% / 0.1);
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Dark mode with amber accents */
+    --background: 20 14.3% 4.1%;
+    --foreground: 0 0% 98%;
+
+    --card: 20 14.3% 6%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 20 14.3% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 39 100% 50%;
+    --primary-foreground: 0 0% 13%;
+
+    --secondary: 20 14.3% 12%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 20 14.3% 12%;
+    --muted-foreground: 45 5.9% 65%;
+
+    --accent: 20 14.3% 12%;
+    --accent-foreground: 45 96% 53%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 20 14.3% 20%;
+    --input: 20 14.3% 20%;
+    --ring: 39 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer components {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+  
+  .shadow-amber {
+    box-shadow: var(--shadow-amber);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  
+  .nigeria-map-hero {
+    position: relative;
+  }
+  
+  .nigeria-map-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('../assets/nigeria-map-background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.12;
+    z-index: 0;
+  }
+  
+  .nigeria-map-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 20%, hsl(45 96% 53% / 0.05) 50%, hsl(45 100% 65% / 0.08) 100%);
+    z-index: 1;
+  }
+  
+  .anambra-map-bg {
+    position: relative;
+  }
+  
+  .anambra-map-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('../assets/nigeria-map-background.png');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.08;
+    z-index: -1;
+  }
+  
+  .anambra-map-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--anambra-map-overlay);
+    z-index: -1;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 4s ease-in-out infinite;
+  }
+  
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 20px hsl(45 96% 53% / 0.3); }
+    50% { box-shadow: 0 0 40px hsl(45 96% 53% / 0.6); }
+  }
+}
