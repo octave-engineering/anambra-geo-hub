@@ -42,32 +42,16 @@ const Header = () => {
 
           {/* Mobile Center Logo - Only on small screens */}
           <div className="flex md:hidden items-center justify-center absolute left-1/2 transform -translate-x-1/2">
-            <div className="flex items-center space-x-2 px-3 py-1 bg-gradient-primary rounded-full">
-              <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center p-0.5">
-                <img 
-                  src={anambraLogo} 
-                  alt="Anambra State Logo" 
-                  className="w-full h-full object-contain"
-                />
+              <div className="flex items-center space-x-2 px-3 py-1 bg-gradient-primary rounded-full">
+                  <span className="text-primary-foreground font-medium text-xs text-center">
+                      Anambra State Government Health Data Geohub
+                  </span>
               </div>
-              <span className="text-primary-foreground font-medium text-xs">
-                Anambra State
-              </span>
-            </div>
           </div>
 
           {/* Desktop Anambra State Government Badge */}
           <div className="hidden md:flex items-center space-x-2 px-4 py-2 bg-gradient-primary rounded-full">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center p-1">
-              <img 
-                src={anambraLogo} 
-                alt="Anambra State Logo" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <span className="text-primary-foreground font-medium text-sm">
-              Anambra State Government
-            </span>
+            
           </div>
 
           {/* Desktop Navigation */}
@@ -105,7 +89,7 @@ const Header = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80">
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center mb-8">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center p-1">
                     <img 
@@ -119,9 +103,6 @@ const Header = () => {
                     <p className="text-xs text-muted-foreground">Health Data Repository</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
               </div>
               
               <nav className="space-y-2">
