@@ -103,12 +103,17 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  // Use Vite's BASE_URL so dev uses root ("/") and prod uses the repo subpath ("/anambra-geo-hub/")
+  // React Router expects basename without a trailing slash
+  const basename = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter basename="/anambra-geo-hub">
+      <BrowserRouter basename={basename}>
         {/* ✅ ensures page scroll resets on route change */}
         <ScrollToTop />
         <div className="min-h-screen flex flex-col">
@@ -149,6 +154,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;

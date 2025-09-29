@@ -6,6 +6,8 @@ import phcFacility from "@/assets/phc-facility-1.jpg";
 import healthWorkers from "@/assets/health-workers.jpg";
 import ruralHealthFacility from "@/assets/rural-health-facility.jpg";
 import heroImage from "@/assets/map.png";
+import heroBg from "@/assets/hero-bg-main.svg";
+import background from "@/assets/geo-hub-backgroun.jpeg";
 
 const HomePage = () => {
   const features = [
@@ -76,14 +78,14 @@ const HomePage = () => {
         <div
           className="absolute inset-0 w-full h-full"
           style={{
-            backgroundImage: `url(${heroImage})`,
+            backgroundImage: `url(${heroBg})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         />
 
         {/* Overlay for Readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/90"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/40"></div>
         
         {/* Hero Content */}
         <div className="container mx-auto px-4 py-20 relative z-10">
