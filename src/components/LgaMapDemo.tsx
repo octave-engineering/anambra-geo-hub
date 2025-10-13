@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { Download } from "lucide-react";
-import { ComposableMap, ZoomableGroup, Marker } from "react-simple-maps";
+import { ComposableMap, ZoomableGroup, Marker, Geographies, Geography } from "react-simple-maps";
 import { ANAMBRA_LGAS_DEMO, PHC_DEMO, type Disease } from "@/data/anambra_demo";
 
 const diseases: Disease[] = ["malaria", "hiv", "tb"];
@@ -67,11 +67,10 @@ const LgaMapDemo = () => {
 
   const maxVal = useMemo(() => Math.max(...ANAMBRA_LGAS_DEMO.map((d) => d.metrics[disease])), [disease]);
 
-  // Compute map center from points to ensure Anambra sits in view
+  // Center on Nigeria so the whole country is visible with Anambra highlighted
   const center = useMemo(() => {
-    const avgLon = ANAMBRA_LGAS_DEMO.reduce((s, d) => s + d.lon, 0) / ANAMBRA_LGAS_DEMO.length;
-    const avgLat = ANAMBRA_LGAS_DEMO.reduce((s, d) => s + d.lat, 0) / ANAMBRA_LGAS_DEMO.length;
-    return [avgLon, avgLat] as [number, number];
+    // Approx centroid of Nigeria (lon, lat)
+    return [8.6753, 9.0820] as [number, number];
   }, []);
 
   const sizeMultiplier = size === "sm" ? 0.8 : size === "lg" ? 1.4 : 1;
@@ -165,8 +164,83 @@ const LgaMapDemo = () => {
       <CardContent>
         <div className="w-full h-[480px] rounded-md border bg-muted/30">
           <ComposableMap projection="geoMercator" style={{ width: "100%", height: "100%" }}>
-            {/* Focus on Anambra area: center ~ (7.0E, 6.2N), higher zoom */}
-            <ZoomableGroup center={center} zoom={12} minZoom={9} maxZoom={16}>
+            {/* Show Nigeria map with Anambra highlighted */}
+            <ZoomableGroup center={center} zoom={1.8} minZoom={1} maxZoom={20}>
+              {/* Nigeria States layer (TopoJSON) */}
+              <Geographies geography="https://raw.githubusercontent.com/deldersveld/topojson/master/countries/nigeria/nigeria-states.json">
+                {({ geographies }) => (
+                  <>
+                    {geographies.map((geo) => {
+                      const props: any = geo.properties || {};
+                      // Try common property keys for state name across datasets
+                      const stateName: string = props.name || props.NAME_1 || props.admin1Name || props.state || "";
+                      const isAnambra = stateName.toLowerCase() === "anambra";
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          style={{
+                            default: {
+                              fill: isAnambra ? "#dcfce7" : "#f1f5f9",
+                              stroke: isAnambra ? "#16a34a" : "#cbd5e1",
+                              strokeWidth: isAnambra ? 1 : 0.5,
+                              outline: "none",
+                            },
+                            hover: {
+                              fill: isAnambra ? "#bbf7d0" : "#e5e7eb",
+                              stroke: isAnambra ? "#15803d" : "#cbd5e1",
+                              strokeWidth: isAnambra ? 1.1 : 0.5,
+                              outline: "none",
+                            },
+                            pressed: {
+                              fill: isAnambra ? "#a7f3d0" : "#f8fafc",
+                              outline: "none",
+                            },
+                          }}
+                        />
+                      );
+                    })}
+                  </>
+                )}
+              </Geographies>
+
+              {/* Anambra LGA boundaries (TopoJSON) - outline only */}
+              <Geographies geography="https://raw.githubusercontent.com/deldersveld/topojson/master/countries/nigeria/nigeria-local-government-areas.json">
+                {({ geographies }) => {
+                  // Filter to LGAs belonging to Anambra using common property keys
+                  const anambraLgas = geographies.filter((geo: any) => {
+                    const p = geo.properties || {};
+                    const admin1: string = p.admin1Name || p.state_name || p.state || p.NAME_1 || "";
+                    return typeof admin1 === "string" && admin1.toLowerCase() === "anambra";
+                  });
+                  return (
+                    <>
+                      {anambraLgas.map((geo: any) => (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          style={{
+                            default: {
+                              fill: "transparent",
+                              stroke: "#065f46",
+                              strokeWidth: 0.8,
+                              outline: "none",
+                            },
+                            hover: {
+                              fill: "transparent",
+                              stroke: "#064e3b",
+                              strokeWidth: 1,
+                              outline: "none",
+                            },
+                            pressed: { fill: "transparent", outline: "none" },
+                          }}
+                        />
+                      ))}
+                    </>
+                  );
+                }}
+              </Geographies>
+
               {/* LGA centroids as proportional circles */}
               {filtered.map((lga) => {
                 const val = lga.metrics[disease];

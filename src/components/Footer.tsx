@@ -132,6 +132,7 @@
 
 import { Link } from "react-router-dom";
 import { MapPin, Mail, Phone, Globe, Facebook, Twitter, Linkedin } from "lucide-react";
+import anambraLogo from "@/assets/anambra-logo.png";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -251,9 +252,11 @@ const Footer = () => {
         <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-4 mb-4 md:mb-0">
             <div className="flex items-center space-x-2 px-3 py-1 bg-primary/10 rounded-full">
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xs">AS</span>
-              </div>
+              <img
+                src={anambraLogo}
+                alt="Anambra State Logo"
+                className="w-6 h-6 rounded-sm object-contain bg-white"
+              />
               <span className="text-sm font-medium text-primary">
                 Anambra State Government
               </span>

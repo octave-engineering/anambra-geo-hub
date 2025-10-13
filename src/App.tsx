@@ -89,10 +89,12 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ChatBot from "@/components/ChatBot";
 import ScrollToTop from "@/components/ScrollToTop"; // ✅ added
+import BackToTop from "@/components/BackToTop";
 
 import HomePage from "@/pages/HomePage";
 import RepositoryPage from "@/pages/RepositoryPage";
 import LoginPage from "@/pages/LoginPage";
+import Logout from "@/pages/Logout";
 import AboutPage from "@/pages/AboutPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import SubmitDataPage from "@/pages/SubmitDataPage";
@@ -121,6 +123,7 @@ const App = () => {
           <Routes>
             {/* Login page without header/footer */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/logout" element={<Logout />} />
 
             {/* Pages with header/footer */}
             <Route
@@ -148,6 +151,7 @@ const App = () => {
                   </main>
                   <Footer />
                   <ChatBot />
+                  <BackToTop />
                 </>
               }
             />

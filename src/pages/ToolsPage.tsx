@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import LgaMapDemo from "@/components/LgaMapDemo";
+import LgaMapLeaflet from "@/components/LgaMapLeaflet";
 
 const ToolsPage = () => {
   return (
@@ -39,25 +39,25 @@ const ToolsPage = () => {
             </CardContent>
           </Card>
 
-          {/* ArcGIS */}
+          {/* PostGIS */}
           <Card className="hover:shadow-card transition-all">
             <CardHeader>
-              <CardTitle>ArcGIS</CardTitle>
-              <CardDescription>Commercial GIS suite for advanced workflows</CardDescription>
+              <CardTitle>PostGIS</CardTitle>
+              <CardDescription>Spatial extension for PostgreSQL: store, query, and analyze geospatial data</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <ul className="list-disc pl-5 space-y-1">
-                <li>ArcGIS Pro for analysis, data management</li>
-                <li>ArcGIS Online for web maps and dashboards</li>
-                <li>Survey123 for mobile data collection</li>
-                <li>Field Maps for asset mapping</li>
+                <li>Spatial SQL for buffers, intersections, distances</li>
+                <li>Indexes (GIST/SP-GIST) for fast spatial queries</li>
+                <li>Support for vector and raster operations</li>
+                <li>Great for backend analytics and tiling pipelines</li>
               </ul>
               <div className="flex gap-3 pt-2">
                 <Button asChild>
-                  <a href="https://www.esri.com/en-us/arcgis/products/arcgis-pro/overview" target="_blank" rel="noreferrer">ArcGIS Pro</a>
+                  <a href="https://postgis.net/documentation/" target="_blank" rel="noreferrer">PostGIS Docs</a>
                 </Button>
                 <Button asChild variant="outline">
-                  <a href="https://www.arcgis.com/" target="_blank" rel="noreferrer">ArcGIS Online</a>
+                  <a href="https://www.postgresql.org/download/" target="_blank" rel="noreferrer">PostgreSQL Download</a>
                 </Button>
               </div>
             </CardContent>
@@ -120,7 +120,7 @@ const ToolsPage = () => {
           <p className="text-sm text-muted-foreground mb-4">
             Explore demo data for Anambra’s 21 LGAs. Choose a disease metric and optionally show PHC locations.
           </p>
-          <LgaMapDemo />
+          <LgaMapLeaflet />
         </div>
       </div>
     </div>

@@ -10,7 +10,8 @@ const Logout = () => {
   useEffect(() => {
     localStorage.removeItem("user"); // example if you're storing user in localStorage
     sessionStorage.clear();
-  }, []);
+    navigate("/", { replace: true });
+  }, [navigate]);
 
   const handleGoHome = () => {
     navigate("/");
