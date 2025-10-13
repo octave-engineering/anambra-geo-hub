@@ -11,12 +11,13 @@ export interface Dataset {
   category: 'disease' | 'facility' | 'population' | 'surveillance';
   accessLevel: 'public' | 'restricted' | 'admin';
   downloadUrl: string;
+  koboFormUrl?: string;
 }
 
 export const healthDatasets: Dataset[] = [
   {
     id: 'dhis2-main',
-    logo: '🏥',
+    logo: '',
     dataset: 'DHIS2 Health Data',
     owner: 'Ministry of Health',
     format: 'CSV',
@@ -30,7 +31,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'grid3-geospatial',
-    logo: '🗺️',
+    logo: '',
     dataset: 'GRID3 Geospatial Data',
     owner: 'GRID3 Nigeria',
     format: 'GeoJSON',
@@ -44,7 +45,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'phc-registry',
-    logo: '🏛️',
+    logo: '',
     dataset: 'PHC Registry',
     owner: 'NPHCDA',
     format: 'Excel',
@@ -58,7 +59,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'nhmis-data',
-    logo: '📊',
+    logo: '',
     dataset: 'NHMIS Data',
     owner: 'Federal Ministry of Health',
     format: 'DHIS2 API',
@@ -72,7 +73,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'hr-registry',
-    logo: '👨‍⚕️',
+    logo: '',
     dataset: 'HR Registry',
     owner: 'MoH HR Department',
     format: 'CSV',
@@ -86,7 +87,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'malaria-unit',
-    logo: '🦟',
+    logo: '',
     dataset: 'Malaria Unit Data',
     owner: 'Ministry of Health',
     format: 'CSV',
@@ -100,7 +101,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'hiv-unit',
-    logo: '🔬',
+    logo: '',
     dataset: 'HIV Unit Data',
     owner: 'Ministry of Health',
     format: 'CSV',
@@ -114,7 +115,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'tb-unit',
-    logo: '🫁',
+    logo: '',
     dataset: 'TB Unit Data',
     owner: 'Ministry of Health',
     format: 'CSV',
@@ -128,7 +129,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'ntd-unit',
-    logo: '🐛',
+    logo: '',
     dataset: 'NTD Unit Data',
     owner: 'Ministry of Health',
     format: 'CSV',
@@ -142,7 +143,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'health-facility-registry',
-    logo: '🏥',
+    logo: '',
     dataset: 'Health Facility Registry',
     owner: 'Ministry of Health',
     format: 'GeoJSON',
@@ -156,7 +157,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'population-projections',
-    logo: '👥',
+    logo: '',
     dataset: 'Population Projections',
     owner: 'National Population Commission',
     format: 'CSV',
@@ -170,7 +171,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'maternal-health',
-    logo: '🤱',
+    logo: '',
     dataset: 'Maternal Health Data',
     owner: 'Ministry of Health',
     format: 'CSV',
@@ -184,7 +185,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'child-health',
-    logo: '👶',
+    logo: '',
     dataset: 'Child Health Data',
     owner: 'Ministry of Health',
     format: 'CSV',
@@ -198,7 +199,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'immunization-coverage',
-    logo: '💉',
+    logo: '',
     dataset: 'Immunization Coverage',
     owner: 'NPHCDA',
     format: 'DHIS2',
@@ -212,7 +213,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'disease-surveillance',
-    logo: '🔍',
+    logo: '',
     dataset: 'Disease Surveillance',
     owner: 'Ministry of Health',
     format: 'CSV',
@@ -226,7 +227,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'mortality-registry',
-    logo: '📋',
+    logo: '',
     dataset: 'Mortality Registry',
     owner: 'National Population Commission',
     format: 'CSV',
@@ -240,7 +241,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'lab-results',
-    logo: '🧪',
+    logo: '',
     dataset: 'Laboratory Results',
     owner: 'MoH Laboratory Services',
     format: 'CSV',
@@ -254,7 +255,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'drug-stock-data',
-    logo: '💊',
+    logo: '',
     dataset: 'Drug Stock Data',
     owner: 'MoH Pharmacy Department',
     format: 'CSV',
@@ -268,7 +269,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'referral-data',
-    logo: '🔄',
+    logo: '',
     dataset: 'Referral Data',
     owner: 'Ministry of Health',
     format: 'Excel',
@@ -282,7 +283,7 @@ export const healthDatasets: Dataset[] = [
   },
   {
     id: 'community-surveys',
-    logo: '📊',
+    logo: '',
     dataset: 'Community Surveys',
     owner: 'Partner NGOs',
     format: 'CSV',
@@ -292,7 +293,8 @@ export const healthDatasets: Dataset[] = [
     size: '19.7 MB',
     category: 'population',
     accessLevel: 'public',
-    downloadUrl: '/api/datasets/community-surveys.csv'
+    downloadUrl: '/api/datasets/community-surveys.csv',
+    koboFormUrl: 'https://kf.kobotoolbox.org/#/forms/your-community-survey-form-id'
   }
 ];
 

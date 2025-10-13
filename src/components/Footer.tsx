@@ -53,7 +53,7 @@
 
 //           {/* Quick Links */}
 //           <div>
-//             <h4 className="font-playfair font-semibold text-foreground mb-4">Quick Links</h4>
+//             <h4 className="font-inter font-semibold text-foreground mb-4">Quick Links</h4>
 //             <nav className="space-y-2">
 //               <Link 
 //                 to="/about" 
@@ -84,7 +84,7 @@
 
 //           {/* Contact Info */}
 //           <div>
-//             <h4 className="font-playfair font-semibold text-foreground mb-4">Contact Info</h4>
+//             <h4 className="font-inter font-semibold text-foreground mb-4">Contact Info</h4>
 //             <div className="space-y-3">
 //               <div className="flex items-center space-x-3 text-muted-foreground">
 //                 <MapPin className="h-4 w-4 text-primary" />
@@ -152,7 +152,7 @@ const Footer = () => {
                 <MapPin className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h3 className="text-xl font-playfair font-bold text-foreground">
+                <h3 className="text-xl font-inter font-bold text-foreground">
                   Anambra GeoHub
                 </h3>
                 <p className="text-sm text-muted-foreground">Health Data Repository</p>

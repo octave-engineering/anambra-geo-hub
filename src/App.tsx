@@ -19,6 +19,7 @@
 // import AboutPage from "@/pages/AboutPage";
 // import AnalyticsPage from "@/pages/AnalyticsPage";
 // import SubmitDataPage from "@/pages/SubmitDataPage";
+import ToolsPage from "@/pages/ToolsPage";
 
 // import PublicDashboard from "@/pages/dashboards/PublicDashboard";
 // import PartnerDashboard from "@/pages/dashboards/PartnerDashboard";
@@ -134,6 +135,7 @@ const App = () => {
                       <Route path="/repository" element={<RepositoryPage />} />
                       <Route path="/submit" element={<SubmitDataPage />} />
                       <Route path="/analytics" element={<AnalyticsPage />} />
+                      <Route path="/tools" element={<ToolsPage />} />
 
                       {/* Dashboard routes */}
                       <Route path="/dashboard/public" element={<PublicDashboard />} />

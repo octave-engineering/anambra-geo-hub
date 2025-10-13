@@ -177,6 +177,13 @@ const DatasetTable = ({ userAccessLevel = 'public' }: DatasetTableProps) => {
                   <Download className="h-4 w-4 mr-2" />
                   Download
                 </Button>
+                {dataset.koboFormUrl && (
+                  <Button asChild variant="secondary" size="sm" className="flex-1">
+                    <a href={dataset.koboFormUrl} target="_blank" rel="noreferrer">
+                      Collect (Kobo)
+                    </a>
+                  </Button>
+                )}
                 <Button variant="outline" size="sm">
                   <Eye className="h-4 w-4" />
                 </Button>

@@ -44,7 +44,7 @@ const AboutPage = () => {
               <MapPin className="h-8 w-8 text-primary-foreground" />
             </div>
             <div className="text-left">
-              <h1 className="text-4xl md:text-5xl font-playfair font-bold text-foreground">
+              <h1 className="text-4xl md:text-5xl font-inter font-bold text-foreground">
                 About Anambra Health GeoHub
               </h1>
               <p className="text-xl text-muted-foreground">
@@ -91,7 +91,7 @@ const AboutPage = () => {
 
         {/* What We Do */}
         <section className="mb-16">
-          <h2 className="text-3xl font-playfair font-bold text-center mb-8">
+          <h2 className="text-3xl font-inter font-bold text-center mb-8">
             What We Do
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -144,7 +144,7 @@ const AboutPage = () => {
 
         {/* Key Partners */}
         <section className="mb-16">
-          <h2 className="text-3xl font-playfair font-bold text-center mb-8">
+          <h2 className="text-3xl font-inter font-bold text-center mb-8">
             Key Partners & Stakeholders
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -166,14 +166,14 @@ const AboutPage = () => {
 
         {/* Achievements */}
         <section className="mb-16">
-          <h2 className="text-3xl font-playfair font-bold text-center mb-8">
+          <h2 className="text-3xl font-inter font-bold text-center mb-8">
             Our Impact
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {achievements.map((achievement, index) => (
               <Card key={index} className="text-center hover:shadow-card transition-all duration-200">
                 <CardContent className="p-6">
-                  <div className="text-4xl font-playfair font-bold text-primary mb-2">
+                  <div className="text-4xl font-inter font-bold text-primary mb-2">
                     {achievement.number}
                   </div>
                   <div className="font-semibold text-foreground mb-2">
@@ -190,7 +190,7 @@ const AboutPage = () => {
 
         {/* Technology Stack */}
         <section className="mb-16">
-          <h2 className="text-3xl font-playfair font-bold text-center mb-8">
+          <h2 className="text-3xl font-inter font-bold text-center mb-8">
             Technology & Standards
           </h2>
           <Card>
@@ -223,7 +223,7 @@ const AboutPage = () => {
 
         {/* CTA */}
         <section className="text-center bg-gradient-primary rounded-2xl p-12">
-          <h2 className="text-3xl font-playfair font-bold text-primary-foreground mb-4">
+          <h2 className="text-3xl font-inter font-bold text-primary-foreground mb-4">
             Ready to Explore Health Data?
           </h2>
           <p className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">

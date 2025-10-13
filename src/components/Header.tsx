@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, MapPin, Database, Upload, Users, Home, Info } from "lucide-react";
+import { Menu, X, MapPin, Database, Upload, Users, Home, Info, Wrench } from "lucide-react";
 import anambraLogo from "@/assets/anambra-logo.png";
 
 const Header = () => {
@@ -15,6 +15,7 @@ const Header = () => {
     { name: "Search Repository", href: "/repository", icon: Database },
     { name: "Submit Data", href: "/submit", icon: Upload },
     { name: "Analytics", href: "/analytics", icon: MapPin },
+    { name: "Tools", href: "/tools", icon: Wrench },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -33,7 +34,7 @@ const Header = () => {
               />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-playfair font-bold text-foreground">
+              <h1 className="text-xl font-inter font-bold text-foreground">
                 Anambra GeoHub
               </h1>
               <p className="text-xs text-muted-foreground">Health Data Repository</p>
@@ -115,7 +116,7 @@ const Header = () => {
                     />
                   </div>
                   <div>
-                    <h2 className="font-playfair font-bold">Anambra GeoHub</h2>
+                    <h2 className="font-inter font-bold">Anambra GeoHub</h2>
                     <p className="text-xs text-muted-foreground">Health Data Repository</p>
                   </div>
                 </div>
@@ -154,6 +155,11 @@ const Header = () => {
               </nav>
             </SheetContent>
           </Sheet>
+        </div>
+      </div>
+      <div className="w-full bg-amber-50 border-t border-b border-amber-200 text-amber-900">
+        <div className="container mx-auto px-4 py-2 text-center text-sm sm:text-base font-medium">
+          This website is a work in progress and currently a working demo. Features, functionalities and data may change.
         </div>
       </div>
     </header>

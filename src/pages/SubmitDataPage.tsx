@@ -99,7 +99,7 @@ const SubmitDataPage = () => {
               <Upload className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-playfair font-bold text-foreground">
+              <h1 className="text-3xl md:text-4xl font-inter font-bold text-foreground">
                 Submit Health Data
               </h1>
               <p className="text-muted-foreground">

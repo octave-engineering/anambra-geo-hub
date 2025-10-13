@@ -128,7 +128,7 @@ const HomePage = () => {
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-playfair font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-inter font-bold text-foreground mb-4">
               Powerful Features for Health Data Management
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -163,7 +163,7 @@ const HomePage = () => {
       <section className="py-20 bg-muted/20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-playfair font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-inter font-bold text-foreground mb-4">
               Health Facilities in Anambra State
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -227,7 +227,7 @@ const HomePage = () => {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-playfair font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-inter font-bold text-foreground mb-4">
               Real-World Applications
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -256,7 +256,7 @@ const HomePage = () => {
       {/* CTA Section */}
       <section className="py-20 bg-gradient-hero">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-playfair font-bold text-primary-foreground mb-6">
+          <h2 className="text-3xl md:text-4xl font-inter font-bold text-primary-foreground mb-6">
             Ready to Explore Health Data?
           </h2>
           <p className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import DatasetTable from "@/components/DatasetTable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ const RepositoryPage = () => {
               <Database className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-playfair font-bold text-foreground">
+              <h1 className="text-3xl md:text-4xl font-inter font-bold text-foreground">
                 Data Repository
               </h1>
               <p className="text-muted-foreground">
@@ -70,12 +71,34 @@ const RepositoryPage = () => {
         <Alert className="mb-6">
           <HelpCircle className="h-4 w-4" />
           <AlertDescription>
-            You are viewing datasets with <strong>Public Access</strong>. 
-            <Button variant="link" className="ml-2 p-0 h-auto text-primary">
-              Login for more datasets
+            You are viewing datasets with <strong>Public Access</strong>.
+            <Button variant="link" className="ml-2 p-0 h-auto text-primary" asChild>
+              <Link to="/login">Login for more datasets</Link>
             </Button>
           </AlertDescription>
         </Alert>
+
+        {/* Field Data Collection (Kobo/ODK) */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-lg">Field Data Collection</CardTitle>
+            <CardDescription>
+              Use mobile and web tools to collect georeferenced health data that feeds into this repository.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col md:flex-row gap-3">
+            <Button asChild variant="secondary">
+              <a href="https://kf.kobotoolbox.org/" target="_blank" rel="noreferrer">
+                Open KoboToolbox (Web)
+              </a>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="https://play.google.com/store/apps/details?id=org.odk.collect.android" target="_blank" rel="noreferrer">
+                Get ODK Collect (Android)
+              </a>
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Dataset Categories */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">

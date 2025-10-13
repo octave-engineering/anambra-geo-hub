@@ -381,7 +381,7 @@ const AdminDashboard = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-playfair font-bold text-foreground mb-2">
+              <h1 className="text-3xl md:text-4xl font-inter font-bold text-foreground mb-2">
                 System Administration
               </h1>
               <p className="text-muted-foreground">

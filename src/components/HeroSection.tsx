@@ -39,7 +39,7 @@ const HeroSection = forwardRef<HTMLDivElement>((props, ref) => {
           </div>
 
           {/* Main Heading */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-playfair font-bold mb-6 leading-tight text-center">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-inter font-bold mb-6 leading-tight text-center">
             <span className="text-black block mb-2 font-bold">Welcome to</span>
             <span className="text-[#fac114] font-bold">Anambra</span>
             <span className="text-black font-bold"> GeoHub</span>
@@ -97,19 +97,19 @@ const HeroSection = forwardRef<HTMLDivElement>((props, ref) => {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 max-w-2xl mx-auto">
             <div className="text-center">
-              <div className="text-3xl font-playfair font-bold text-primary mb-2">20+</div>
+              <div className="text-3xl font-inter font-bold text-primary mb-2">20+</div>
               <div className="text-sm text-muted-foreground">Health Datasets</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-playfair font-bold text-primary mb-2">21</div>
+              <div className="text-3xl font-inter font-bold text-primary mb-2">21</div>
               <div className="text-sm text-muted-foreground">Local Governments</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-playfair font-bold text-primary mb-2">100%</div>
+              <div className="text-3xl font-inter font-bold text-primary mb-2">100%</div>
               <div className="text-sm text-muted-foreground">Data Coverage</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-playfair font-bold text-primary mb-2">24/7</div>
+              <div className="text-3xl font-inter font-bold text-primary mb-2">24/7</div>
               <div className="text-sm text-muted-foreground">Monitoring</div>
             </div>
           </div>
