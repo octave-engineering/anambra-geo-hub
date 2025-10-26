@@ -193,29 +193,50 @@ const Footer = () => {
           <div>
             <h4 className="font-playfair font-semibold text-foreground mb-4">Quick Links</h4>
             <nav className="flex flex-col space-y-3">
-              <Link 
-                to="/about" 
+              <Link
+                to="/"
                 onClick={handleLinkClick}
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
-                About GeoHub
+                Home
               </Link>
-              <Link 
-                to="/repository" 
+              <Link
+                to="/about"
+                onClick={handleLinkClick}
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                About
+              </Link>
+              <Link
+                to="/repository"
                 onClick={handleLinkClick}
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 Data Repository
               </Link>
-              <Link 
-                to="/analytics" 
+              <Link
+                to="/analytics"
                 onClick={handleLinkClick}
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
-                Analytics Dashboard
+                Analytics
               </Link>
-              <Link 
-                to="/submit" 
+              <Link
+                to="/tools"
+                onClick={handleLinkClick}
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                Tools
+              </Link>
+              <Link
+                to="/learning"
+                onClick={handleLinkClick}
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                Learning
+              </Link>
+              <Link
+                to="/submit"
                 onClick={handleLinkClick}
                 className="text-muted-foreground hover:text-primary transition-colors"
               >

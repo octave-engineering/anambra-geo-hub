@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, MapPin, Database, Upload, Users, Home, Info, Wrench } from "lucide-react";
+import { Menu, X, MapPin, Database, Upload, Users, Home, Info, BookOpen, BarChart3 } from "lucide-react";
 import anambraLogo from "@/assets/anambra-logo.png";
 
 const Header = () => {
@@ -12,10 +12,10 @@ const Header = () => {
   const navigation = [
     { name: "Home", href: "/", icon: Home },
     { name: "About", href: "/about", icon: Info },
-    { name: "Search Repository", href: "/repository", icon: Database },
+    { name: "Data Repository", href: "/repository", icon: Database },
     { name: "Submit Data", href: "/submit", icon: Upload },
-    { name: "Analytics", href: "/analytics", icon: MapPin },
-    { name: "Tools", href: "/tools", icon: Wrench },
+    { name: "Analytics", href: "/analytics", icon: BarChart3 },
+    { name: "Tools & Learning", href: "/learning", icon: BookOpen },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -48,11 +48,6 @@ const Header = () => {
                       Anambra Health GeoHub
                   </span>
               </div>
-          </div>
-
-          {/* Desktop Anambra State Government Badge */}
-          <div className="hidden md:flex items-center space-x-2 px-4 py-2 bg-gradient-primary rounded-full">
-            
           </div>
 
           {/* Desktop Navigation */}
