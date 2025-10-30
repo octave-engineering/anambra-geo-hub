@@ -16,7 +16,7 @@ const Login = () => {
     {
       id: "admin",
       label: "Administrator",
-      description: "Anambra State Government Officials",
+      description: "Anambra State Ministry of Health (AMOH)",
       icon: Shield,
       color: "text-destructive",
       requiresAuth: true,
@@ -177,7 +177,7 @@ const Login = () => {
                     </div>
                     <div className="flex items-center justify-center space-x-2 text-sm">
                       <Building className="h-4 w-4 text-primary" />
-                      <span>Anambra GeoHub Health Data Repository</span>
+                      <span>Anambra State Ministry of Health (AMOH)</span>
                     </div>
                   </div>
                 </div>

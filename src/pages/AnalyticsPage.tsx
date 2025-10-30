@@ -22,6 +22,9 @@ import {
   Map as MapIcon,
   Activity,
   Download,
+  Info,
+  MousePointer,
+  Square,
 } from "lucide-react";
 import {
   BarChart,
@@ -38,13 +41,19 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, useMapEvents, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { healthDatasets, getDatasetsByCategory, getDatasetsByPortal } from "@/data/datasets";
 
 import type { FeatureCollection, Feature, Polygon } from "geojson";
 
 const AnalyticsPage: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("2024");
+  const [selectedDatasetType, setSelectedDatasetType] = useState<string>("all");
+  const [selectedLGA, setSelectedLGA] = useState<string | null>(null);
+  const [hoveredLGA, setHoveredLGA] = useState<string | null>(null);
+  const [drawMode, setDrawMode] = useState<boolean>(false);
+  const [selectedArea, setSelectedArea] = useState<any>(null);
 
   // Mock disease trend data
   const diseaseData = [
@@ -136,27 +145,27 @@ const AnalyticsPage: React.FC = () => {
    * Demo Anambra GeoJSON
    ***************/
   const lgaCenters = [
-    { name: "Aguata", coord: [7.09, 6.03], cases: { malaria: 120, hiv: 8, tb: 4 } },
-    { name: "Anaocha", coord: [6.95, 6.17], cases: { malaria: 150, hiv: 6, tb: 8 } },
-    { name: "Anambra East", coord: [7.66, 6.18], cases: { malaria: 60, hiv: 3, tb: 2 } },
-    { name: "Anambra West", coord: [6.40, 6.56], cases: { malaria: 200, hiv: 12, tb: 5 } },
-    { name: "Awka North", coord: [7.01, 6.36], cases: { malaria: 110, hiv: 4, tb: 3 } },
-    { name: "Awka South", coord: [7.07, 6.21], cases: { malaria: 95, hiv: 5, tb: 2 } },
-    { name: "Ayamelum", coord: [6.50, 6.40], cases: { malaria: 25, hiv: 1, tb: 0 } },
-    { name: "Dunukofia", coord: [6.90, 6.25], cases: { malaria: 70, hiv: 2, tb: 1 } },
-    { name: "Ekwusigo", coord: [6.96, 6.08], cases: { malaria: 160, hiv: 9, tb: 3 } },
-    { name: "Idemili North", coord: [6.83, 6.22], cases: { malaria: 180, hiv: 6, tb: 4 } },
-    { name: "Idemili South", coord: [6.80, 6.15], cases: { malaria: 140, hiv: 5, tb: 3 } },
-    { name: "Ihiala", coord: [6.09, 5.98], cases: { malaria: 170, hiv: 7, tb: 6 } },
-    { name: "Njikoka", coord: [7.03, 6.18], cases: { malaria: 45, hiv: 2, tb: 1 } },
-    { name: "Nnewi North", coord: [6.03, 6.01], cases: { malaria: 95, hiv: 4, tb: 2 } },
-    { name: "Nnewi South", coord: [6.02, 5.90], cases: { malaria: 120, hiv: 6, tb: 2 } },
-    { name: "Ogbaru", coord: [6.75, 5.95], cases: { malaria: 80, hiv: 3, tb: 1 } },
-    { name: "Onitsha North", coord: [6.78, 6.16], cases: { malaria: 220, hiv: 11, tb: 6 } },
-    { name: "Onitsha South", coord: [6.80, 6.14], cases: { malaria: 170, hiv: 9, tb: 4 } },
-    { name: "Orumba North", coord: [7.18, 6.02], cases: { malaria: 40, hiv: 2, tb: 1 } },
-    { name: "Orumba South", coord: [7.22, 5.95], cases: { malaria: 75, hiv: 3, tb: 1 } },
-    { name: "Oyi", coord: [7.13, 6.33], cases: { malaria: 50, hiv: 1, tb: 0 } },
+    { name: "Aguata", coord: [7.09, 6.03], datasets: getDatasetsByCategory('disease').length + getDatasetsByCategory('facility').length },
+    { name: "Anaocha", coord: [6.95, 6.17], datasets: getDatasetsByPortal('DHIS2').length },
+    { name: "Anambra East", coord: [7.66, 6.18], datasets: getDatasetsByCategory('population').length },
+    { name: "Anambra West", coord: [6.40, 6.56], datasets: getDatasetsByPortal('GRID3').length },
+    { name: "Awka North", coord: [7.01, 6.36], datasets: getDatasetsByCategory('facility').length },
+    { name: "Awka South", coord: [7.07, 6.21], datasets: getDatasetsByPortal('DHIS2').length },
+    { name: "Ayamelum", coord: [6.50, 6.40], datasets: getDatasetsByCategory('population').length },
+    { name: "Dunukofia", coord: [6.90, 6.25], datasets: getDatasetsByCategory('disease').length },
+    { name: "Ekwusigo", coord: [6.96, 6.08], datasets: getDatasetsByPortal('DHIS2').length },
+    { name: "Idemili North", coord: [6.83, 6.22], datasets: getDatasetsByCategory('facility').length },
+    { name: "Idemili South", coord: [6.80, 6.15], datasets: getDatasetsByCategory('disease').length },
+    { name: "Ihiala", coord: [6.09, 5.98], datasets: getDatasetsByPortal('DHIS2').length },
+    { name: "Njikoka", coord: [7.03, 6.18], datasets: getDatasetsByCategory('population').length },
+    { name: "Nnewi North", coord: [6.03, 6.01], datasets: getDatasetsByCategory('facility').length },
+    { name: "Nnewi South", coord: [6.02, 5.90], datasets: getDatasetsByCategory('disease').length },
+    { name: "Ogbaru", coord: [6.75, 5.95], datasets: getDatasetsByPortal('GRID3').length },
+    { name: "Onitsha North", coord: [6.78, 6.16], datasets: getDatasetsByCategory('facility').length },
+    { name: "Onitsha South", coord: [6.80, 6.14], datasets: getDatasetsByCategory('disease').length },
+    { name: "Orumba North", coord: [7.18, 6.02], datasets: getDatasetsByCategory('population').length },
+    { name: "Orumba South", coord: [7.22, 5.95], datasets: getDatasetsByCategory('facility').length },
+    { name: "Oyi", coord: [7.13, 6.33], datasets: getDatasetsByCategory('population').length },
   ];
 
   const makeSquarePolygon = (lng: number, lat: number, size = 0.035): number[][][] => [
@@ -174,11 +183,19 @@ const AnalyticsPage: React.FC = () => {
       type: "FeatureCollection",
       features: lgaCenters.map((lga) => ({
         type: "Feature",
-        properties: { name: lga.name, cases: lga.cases },
-        geometry: { type: "Polygon", coordinates: makeSquarePolygon(lga.coord[0], lga.coord[1], 0.03) },
+        properties: {
+          name: lga.name,
+          datasets: lga.datasets,
+          portal: selectedDatasetType === 'all' ? 'mixed' : selectedDatasetType,
+          category: 'mixed'
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: makeSquarePolygon(lga.coord[0], lga.coord[1], 0.03)
+        },
       })),
     };
-  }, []);
+  }, [selectedDatasetType]);
 
   const nigeriaGeoJSON: FeatureCollection<Polygon, { name: string }> = useMemo(() => ({
     type: "FeatureCollection",
@@ -201,24 +218,35 @@ const AnalyticsPage: React.FC = () => {
     fillOpacity: 0.55,
   });
 
-  const anambraStyle = () => ({
-    fillColor: "#ffaa00",
-    color: "#b36e00",
-    weight: 2,
-    fillOpacity: 0.85,
-  });
+  const anambraStyle = (feature: any) => {
+    const datasets = feature?.properties?.datasets || 0;
+    const opacity = Math.min(datasets / 10, 1); // Scale opacity based on dataset count
+    return {
+      fillColor: datasets > 5 ? "#ffaa00" : datasets > 2 ? "#ffcc66" : "#ffe6b3",
+      color: "#b36e00",
+      weight: 2,
+      fillOpacity: 0.7 + (opacity * 0.3),
+    };
+  };
 
-  const anambraOnEach = (feature: Feature<Polygon, any>, layer: any) => {
-    if (!feature.properties) return;
-    const { name, cases } = feature.properties;
-    layer.bindPopup(`
-      <strong>${name}</strong>
-      <table>
-        <tr><td>Malaria</td><td>${cases.malaria}</td></tr>
-        <tr><td>HIV</td><td>${cases.hiv}</td></tr>
-        <tr><td>TB</td><td>${cases.tb}</td></tr>
-      </table>
-    `);
+  // Add dataset selection controls
+  const datasetTypes = [
+    { value: 'all', label: 'All Datasets' },
+    { value: 'DHIS2', label: 'DHIS2 Data' },
+    { value: 'GRID3', label: 'GRID3 Data' },
+    { value: 'HFR', label: 'Health Facility Registry' },
+    { value: 'NHMIS', label: 'NHMIS Data' },
+  ];
+
+  const handleDownloadSelectedArea = () => {
+    if (selectedArea) {
+      const datasets = healthDatasets.filter(d =>
+        d.portal === selectedDatasetType ||
+        (selectedDatasetType === 'all' && d.accessLevel === 'public')
+      );
+      console.log('Downloading datasets for selected area:', datasets);
+      // In a real app, this would trigger actual downloads
+    }
   };
 
   return (
@@ -370,20 +398,96 @@ const AnalyticsPage: React.FC = () => {
         {/* Map */}
         <Card>
           <CardHeader>
-            <CardTitle>Interactive Map of Nigeria (Anambra Focus)</CardTitle>
-            <CardDescription>Click LGAs to view demo disease breakdowns.</CardDescription>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <CardTitle>Interactive Data Portal Map</CardTitle>
+                <CardDescription>Click LGAs to view available datasets and download data directly.</CardDescription>
+              </div>
+              <div className="flex flex-col md:flex-row gap-3">
+                <Select value={selectedDatasetType} onValueChange={setSelectedDatasetType}>
+                  <SelectTrigger className="w-full md:w-48">
+                    <SelectValue placeholder="Select Dataset Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {datasetTypes.map(type => (
+                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant={drawMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setDrawMode(!drawMode)}
+                >
+                  <Square className="h-4 w-4 mr-2" />
+                  {drawMode ? "Exit Selection" : "Select Area"}
+                </Button>
+                {selectedArea && (
+                  <Button variant="outline" size="sm" onClick={handleDownloadSelectedArea}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Selected
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] md:h-[560px] w-full rounded-lg overflow-hidden">
-              <MapContainer center={[6.25, 6.92]} zoom={8} scrollWheelZoom className="h-full w-full">
+            <div className="h-[400px] md:h-[560px] w-full rounded-lg overflow-hidden">
+              <MapContainer center={[6.25, 6.92]} zoom={8} scrollWheelZoom={true} className="h-full w-full">
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <GeoJSON data={nigeriaGeoJSON} style={nigeriaStyle} />
-                <GeoJSON data={anambraGeoJSON} style={anambraStyle} onEachFeature={anambraOnEach} />
+                <GeoJSON
+                  data={nigeriaGeoJSON}
+                  pathOptions={{
+                    fillColor: "#e6e6e6",
+                    color: "#bdbdbd",
+                    weight: 1,
+                    fillOpacity: 0.55,
+                  }}
+                />
+                <GeoJSON
+                  data={anambraGeoJSON}
+                  pathOptions={(feature: any) => {
+                    const datasets = feature?.properties?.datasets || 0;
+                    const opacity = Math.min(datasets / 10, 1);
+                    return {
+                      fillColor: datasets > 5 ? "#ffaa00" : datasets > 2 ? "#ffcc66" : "#ffe6b3",
+                      color: "#b36e00",
+                      weight: 2,
+                      fillOpacity: 0.7 + (opacity * 0.3),
+                    };
+                  }}
+                  onEachFeature={(feature: Feature<Polygon, any>, layer: any) => {
+                    if (!feature.properties) return;
+                    const { name, datasets, portal, category } = feature.properties;
+
+                    layer.bindTooltip(`
+                      <strong>${name}</strong><br/>
+                      <strong>Datasets Available:</strong> ${datasets}<br/>
+                      <strong>Primary Portal:</strong> ${portal}<br/>
+                      <strong>Category:</strong> ${category}
+                    `, { sticky: true });
+
+                    layer.on('click', () => {
+                      setSelectedLGA(name);
+                    });
+                  }}
+                />
               </MapContainer>
             </div>
+            {selectedLGA && (
+              <div className="mt-4 p-4 bg-[#ffaa00]/10 border border-[#ffaa00]/20 rounded-lg">
+                <h4 className="font-semibold text-[#ffaa00] mb-2">Selected LGA: {selectedLGA}</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Available datasets in this area will be shown here.
+                </p>
+                <Button size="sm" onClick={() => setSelectedLGA(null)}>
+                  Clear Selection
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -3,15 +3,22 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Database, Map, BarChart3, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { forwardRef } from "react";
+import landingPageImage from "@/assets/Landing Page.png";
 
 const HeroSection = forwardRef<HTMLDivElement>((props, ref) => {
   return (
     <section
       ref={ref}
       className="relative min-h-[90vh] flex items-center justify-center overflow-hidden"
+      style={{
+        backgroundImage: `url(${landingPageImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
     >
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-hero opacity-10"></div>
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/30"></div>
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-20 h-20 bg-primary/20 rounded-full animate-float"></div>
         <div
@@ -48,7 +55,7 @@ const HeroSection = forwardRef<HTMLDivElement>((props, ref) => {
 
           {/* Subheading */}
           <p className="text-xl md:text-2xl text-black mb-8 max-w-3xl mx-auto leading-relaxed bg-white/70 p-2 rounded">
-            Comprehensive health data repository and geospatial analytics platform 
+            Comprehensive health data portal and geospatial analytics platform 
             for evidence-based healthcare decision making in Anambra State
           </p>
 
@@ -76,7 +83,7 @@ const HeroSection = forwardRef<HTMLDivElement>((props, ref) => {
               className="bg-primary hover:bg-primary-dark text-primary-foreground px-8 py-6 text-lg shadow-amber animate-pulse-glow"
             >
               <Link to="/repository">
-                Explore Repository
+                Explore Portal
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>

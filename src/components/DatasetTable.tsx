@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Search, Filter, Eye, Calendar, HardDrive } from "lucide-react";
+import { Download, Search, Filter, Eye, Info } from "lucide-react";
 import { healthDatasets, Dataset } from "@/data/datasets";
 import { toast } from "@/hooks/use-toast";
 
@@ -16,6 +15,7 @@ const DatasetTable = ({ userAccessLevel = 'public' }: DatasetTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [formatFilter, setFormatFilter] = useState<string>("all");
+  const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
 
   // Filter datasets based on user access level
   const accessibleDatasets = healthDatasets.filter(dataset => {
@@ -29,10 +29,10 @@ const DatasetTable = ({ userAccessLevel = 'public' }: DatasetTableProps) => {
     const matchesSearch = dataset.dataset.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          dataset.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          dataset.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesCategory = categoryFilter === 'all' || dataset.category === categoryFilter;
     const matchesFormat = formatFilter === 'all' || dataset.format.toLowerCase().includes(formatFilter.toLowerCase());
-    
+
     return matchesSearch && matchesCategory && matchesFormat;
   });
 
@@ -42,28 +42,13 @@ const DatasetTable = ({ userAccessLevel = 'public' }: DatasetTableProps) => {
       title: "Download Started",
       description: `Downloading ${dataset.dataset} (${dataset.size})`,
     });
-    
+
     // In a real app, this would trigger the actual download
     console.log(`Downloading: ${dataset.downloadUrl}`);
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'disease': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      case 'facility': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'population': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'surveillance': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-    }
-  };
-
-  const getAccessLevelColor = (level: string) => {
-    switch (level) {
-      case 'public': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'restricted': return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300';
-      case 'admin': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-    }
+  const handleMoreInfo = (dataset: Dataset) => {
+    setSelectedDataset(dataset);
   };
 
   return (
@@ -87,7 +72,7 @@ const DatasetTable = ({ userAccessLevel = 'public' }: DatasetTableProps) => {
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Category" />
@@ -100,7 +85,7 @@ const DatasetTable = ({ userAccessLevel = 'public' }: DatasetTableProps) => {
                 <SelectItem value="surveillance">Surveillance</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Select value={formatFilter} onValueChange={setFormatFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Format" />
@@ -113,7 +98,7 @@ const DatasetTable = ({ userAccessLevel = 'public' }: DatasetTableProps) => {
                 <SelectItem value="api">API</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <div className="text-sm text-muted-foreground flex items-center">
               <Eye className="h-4 w-4 mr-2 text-primary" />
               {filteredDatasets.length} datasets found
@@ -135,39 +120,18 @@ const DatasetTable = ({ userAccessLevel = 'public' }: DatasetTableProps) => {
                     <p className="text-sm text-muted-foreground">{dataset.owner}</p>
                   </div>
                 </div>
-                <Badge className={getAccessLevelColor(dataset.accessLevel)}>
-                  {dataset.accessLevel}
-                </Badge>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground line-clamp-2">
                 {dataset.description}
               </p>
-              
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline">{dataset.format}</Badge>
-                <Badge className={getCategoryColor(dataset.category)}>
-                  {dataset.category}
-                </Badge>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center space-x-2 text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{dataset.refresh}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-muted-foreground">
-                  <HardDrive className="h-4 w-4" />
-                  <span>{dataset.size}</span>
-                </div>
-              </div>
-              
+
               <div className="text-xs text-muted-foreground">
                 Last updated: {new Date(dataset.lastUpdated).toLocaleDateString()}
               </div>
-              
+
               <div className="flex gap-2 pt-2">
                 <Button
                   onClick={() => handleDownload(dataset)}
@@ -187,6 +151,14 @@ const DatasetTable = ({ userAccessLevel = 'public' }: DatasetTableProps) => {
                 <Button variant="outline" size="sm">
                   <Eye className="h-4 w-4" />
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleMoreInfo(dataset)}
+                  title="More Information"
+                >
+                  <Info className="h-4 w-4" />
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -203,6 +175,103 @@ const DatasetTable = ({ userAccessLevel = 'public' }: DatasetTableProps) => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* More Info Modal/Tooltip */}
+      {selectedDataset && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl">{selectedDataset.dataset}</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedDataset(null)}
+                >
+                  ✕
+                </Button>
+              </div>
+              <CardContent className="p-0">
+                <div className="space-y-4">
+                  {/* Basic Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-primary mb-2">Basic Information</h4>
+                      <div className="space-y-2 text-sm">
+                        <div><strong>Owner:</strong> {selectedDataset.owner}</div>
+                        <div><strong>Format:</strong> {selectedDataset.format}</div>
+                        <div><strong>Size:</strong> {selectedDataset.size}</div>
+                        <div><strong>Last Updated:</strong> {new Date(selectedDataset.lastUpdated).toLocaleDateString()}</div>
+                        <div><strong>Access Level:</strong>
+                          <span className={`ml-1 px-2 py-1 rounded-full text-xs ${
+                            selectedDataset.accessLevel === 'public' ? 'bg-green-100 text-green-800' :
+                            selectedDataset.accessLevel === 'restricted' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {selectedDataset.accessLevel}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-primary mb-2">Technical Details</h4>
+                      <div className="space-y-2 text-sm">
+                        <div><strong>Type:</strong> {selectedDataset.type}</div>
+                        <div><strong>Source:</strong> {selectedDataset.source}</div>
+                        <div><strong>Custodian:</strong> {selectedDataset.custodian}</div>
+                        <div><strong>Update Frequency:</strong> {selectedDataset.updateFrequency}</div>
+                        <div><strong>Portal:</strong> {selectedDataset.portal}</div>
+                        <div><strong>Category:</strong> {selectedDataset.subcategory}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <h4 className="font-semibold text-primary mb-2">Description</h4>
+                    <p className="text-sm text-muted-foreground">{selectedDataset.description}</p>
+                  </div>
+
+                  {/* Usage */}
+                  {selectedDataset.usage && (
+                    <div>
+                      <h4 className="font-semibold text-primary mb-2">Usage</h4>
+                      <p className="text-sm text-muted-foreground">{selectedDataset.usage}</p>
+                    </div>
+                  )}
+
+                  {/* Citation */}
+                  {selectedDataset.citation && (
+                    <div>
+                      <h4 className="font-semibold text-primary mb-2">Citation</h4>
+                      <p className="text-sm text-muted-foreground italic">"{selectedDataset.citation}"</p>
+                    </div>
+                  )}
+
+                  {/* Attributes */}
+                  {selectedDataset.attributes && selectedDataset.attributes.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-primary mb-2">Key Attributes</h4>
+                      <div className="space-y-2">
+                        {selectedDataset.attributes.map((attr, index) => (
+                          <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                            <div className="font-medium text-sm">{attr.name}</div>
+                            <div className="text-xs text-muted-foreground mb-1">
+                              Example: {attr.exampleValue}
+                            </div>
+                            <div className="text-xs text-muted-foreground">{attr.description}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </CardHeader>
+          </Card>
+        </div>
       )}
     </div>
   );

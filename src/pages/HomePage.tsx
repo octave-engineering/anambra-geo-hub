@@ -8,6 +8,7 @@ import ruralHealthFacility from "@/assets/rural-health-facility.jpg";
 import heroImage from "@/assets/map.png";
 import heroBg from "@/assets/hero-bg-main.svg";
 import background from "@/assets/geo-hub-backgroun.jpeg";
+import landingPageImage from "@/assets/Landing Page.png";
 
 const HomePage = () => {
   const features = [
@@ -78,45 +79,44 @@ const HomePage = () => {
         <div
           className="absolute inset-0 w-full h-full"
           style={{
-            backgroundImage: `url(${heroBg})`,
+            backgroundImage: `url(${landingPageImage})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         />
 
-        {/* Overlay for Readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/40"></div>
+        {/* Semi-transparent overlay for better text contrast */}
+        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(255, 170, 0, 0.2)' }}></div>
         
         {/* Hero Content */}
         <div className="container mx-auto px-4 py-20 relative z-10">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-6 leading-tight text-center text-white-900">
-              Welcome to Anambra Health  GeoHub
-            </h1>
-            <p className="text-lg md:text-xl text-black mb-8 max-w-3xl mx-auto leading-relaxed">
-            Harness the power of health and geospatial data to drive smarter decisions across Anambra State.
-            </p>
+            <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8 mb-8 w-full">
+              {/* Very subtle overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#ffaa00]/05 via-[#ffaa00]/01 via-30% to-transparent to-80% backdrop-blur-sm"></div>
+              <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+              
+              {/* Content */}
+              <div className="relative z-10">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 leading-tight text-center text-gray-900">
+                  <div className="block">Welcome To</div>
+                  <div className="block whitespace-nowrap">Anambra Health GeoHub</div>
+                </h1>
+                <p className="text-xl md:text-2xl text-gray-800 font-semibold max-w-3xl mx-auto leading-relaxed text-center">
+                  Harness the power of health and geospatial data to drive smarter decisions across Anambra State.
+                </p>
+              </div>
+            </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button 
-                asChild 
-                size="lg" 
-                className="w-full sm:w-auto"
+              <Button
+                asChild
+                size="lg"
+                className="w-full sm:w-auto bg-[#ffaa00] border-2 border-[#ffaa00] text-white hover:bg-[#ffaa00] hover:border-[#ffaa00] transition-all duration-200 hover:shadow-lg"
               >
-                <Link to="/repository">
+                <Link to="/dataportal">
                   Browse Repository
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button 
-                asChild 
-                size="lg" 
-                variant="outline" 
-                className="w-full sm:w-auto"
-              >
-                <Link to="/login">
-                  Get Started
-                  <Users className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </div>
@@ -262,17 +262,11 @@ const HomePage = () => {
           <p className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
             Join thousands of health professionals, researchers, and policymakers using Anambra GeoHub to make data-driven decisions.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90 w-full sm:w-auto">
-              <Link to="/repository">
+          <div className="flex justify-center">
+            <Button asChild size="lg" className="bg-[#ffaa00] border-2 border-[#ffaa00] text-white hover:bg-[#ffaa00] hover:border-[#ffaa00] transition-all duration-200 px-8 hover:shadow-lg">
+              <Link to="/dataportal">
                 Browse Repository
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10 w-full sm:w-auto">
-              <Link to="/login">
-                Get Started
-                <Users className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>

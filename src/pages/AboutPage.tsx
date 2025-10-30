@@ -1,8 +1,10 @@
+import landingPageImage from "@/assets/Landing Page.png";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Info, Target, Eye, Users, Award, ArrowRight, ChevronLeft, ChevronRight, Quote, MapPin } from "lucide-react";
+import { Info, Target, Eye, Users, ChevronLeft, ChevronRight, Quote, MapPin, Database, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import InteractiveAnambraMap from "@/components/InteractiveAnambraMap";
 
 const AboutPage = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -23,21 +25,22 @@ const AboutPage = () => {
   const prevTestimonial = () => {
     setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
+
   const team = [
     {
-      name: "Anambra State Ministry of Health",
+      name: "Anambra State Ministry of Health (SMOH)",
       role: "Project Lead & Data Governance",
       description: "Leading the initiative to digitize and democratize health data access across Anambra State.",
     },
     {
-      name: "GRID3 Nigeria",
-      role: "Geospatial Data Partner",
-      description: "Providing high-resolution geospatial data and mapping infrastructure support.",
-    },
-    {
-      name: "NPHCDA",
+      name: "Primary Health Care Development Agency (ASPHCDA)",
       role: "Primary Healthcare Data",
       description: "Contributing primary healthcare facility registry and service delivery data.",
+    },
+    {
+      name: "Department of Planning, Research and Statistics (PRS Unit)",
+      role: "Data Management & Analytics",
+      description: "Providing research, planning and statistical support for health data integration.",
     },
     {
       name: "Development Partners",
@@ -85,19 +88,35 @@ const AboutPage = () => {
   ];
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen flex flex-col">
+      {/* Background Image */}
+      <div 
+        className="fixed inset-0 w-full h-full -z-10"
+        style={{
+          backgroundImage: `url(${landingPageImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      
+      {/* Semi-transparent overlay */}
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm -z-10"></div>
+      
+      {/* Main content container with flex-grow to push footer down */}
+      <main className="flex-grow relative z-0">
+        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Header */}
-        <div className="text-center mb-16">
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center shadow-amber">
-              <Info className="h-8 w-8 text-primary-foreground" />
+        <div className="text-center mb-8 sm:mb-16 px-2 sm:px-0">
+          <div className="flex flex-col items-center space-y-4 mb-6">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary rounded-lg flex items-center justify-center shadow-amber flex-shrink-0">
+              <Info className="h-6 w-6 sm:h-8 sm:w-8 text-primary-foreground" />
             </div>
-            <div className="text-left">
-              <h1 className="text-4xl md:text-5xl font-inter font-bold text-foreground">
+            <div className="text-center">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black drop-shadow-sm">
                 About Anambra Health GeoHub
               </h1>
-              <p className="text-xl text-muted-foreground">
+              <p className="text-lg sm:text-xl text-[#ffaa00] mt-2 font-medium">
                 Transforming health data into actionable insights
               </p>
             </div>
@@ -105,34 +124,34 @@ const AboutPage = () => {
         </div>
 
         {/* Mission & Vision */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          <Card className="border-l-4 border-l-primary">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-2xl">
-                <Target className="h-6 w-6 text-primary" />
-                <span>Our Mission</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16 px-2 sm:px-0">
+          <Card className="border-l-4 border-l-[#ffaa00] bg-white/95 shadow-lg hover:shadow-xl transition-shadow duration-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center space-x-2 text-xl sm:text-2xl">
+                <Target className="h-5 w-5 sm:h-6 sm:w-6 text-[#ffaa00] flex-shrink-0" />
+                <span className="text-black">Our Mission</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                To create a comprehensive, accessible, and secure health data ecosystem that empowers 
-                evidence-based decision making, improves health outcomes, and strengthens the health 
+              <p className="text-base sm:text-lg text-gray-800 leading-relaxed">
+                To create a comprehensive, accessible, and secure health data ecosystem that empowers
+                evidence-based decision making, improves health outcomes, and strengthens the health
                 system across Anambra State through innovative geospatial analytics and data integration.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-primary">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-2xl">
-                <Eye className="h-6 w-6 text-primary" />
-                <span>Our Vision</span>
+          <Card className="border-l-4 border-l-[#ffaa00] bg-white/95 shadow-lg hover:shadow-xl transition-shadow duration-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center space-x-2 text-xl sm:text-2xl">
+                <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-[#ffaa00] flex-shrink-0" />
+                <span className="text-black">Our Vision</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                To be the leading state-level health data platform in Nigeria, setting the standard 
-                for transparent, accessible, and actionable health information systems that drive 
+              <p className="text-base sm:text-lg text-gray-800 leading-relaxed">
+                To be the leading state-level health data platform in Nigeria, setting the standard
+                for transparent, accessible, and actionable health information systems that drive
                 sustainable improvements in population health and healthcare delivery.
               </p>
             </CardContent>
@@ -140,74 +159,71 @@ const AboutPage = () => {
         </div>
 
         {/* What We Do */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-inter font-bold text-center mb-8">
+        <section className="mb-12 sm:mb-16 px-2 sm:px-0">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-black">
             What We Do
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center hover:shadow-card transition-all duration-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            <Card className="text-center hover:shadow-xl transition-all duration-200 bg-white/95">
               <CardHeader>
-                <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl">📊</span>
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#ffaa00]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl sm:text-4xl">📊</span>
                 </div>
-                <CardTitle>Data Integration</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl text-black">Data Integration</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-base">
-                  Harmonize health data from DHIS2, GRID3, PHC facilities, and disease-specific 
-                  programs into a unified, standardized repository.
-                </CardDescription>
+                <p className="text-gray-700 text-base leading-relaxed">
+                  Harmonize health data from DHIS2, GRID3, PHC facilities, and disease-specific programs into a unified, standardized repository.
+                </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-card transition-all duration-200">
+            <Card className="text-center hover:shadow-xl transition-all duration-200 bg-white/95">
               <CardHeader>
-                <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl">🗺️</span>
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#ffaa00]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl sm:text-4xl">🗺️</span>
                 </div>
-                <CardTitle>Geospatial Analytics</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl text-black">Geospatial Analytics</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-base">
-                  Provide interactive mapping and spatial analysis tools to visualize health 
-                  patterns, identify hotspots, and support geographic decision making.
-                </CardDescription>
+                <p className="text-gray-700 text-base leading-relaxed">
+                  Provide interactive mapping and spatial analysis tools to visualize health patterns, identify hotspots, and support geographic decision making.
+                </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-card transition-all duration-200">
+            <Card className="text-center hover:shadow-xl transition-all duration-200 bg-white/95">
               <CardHeader>
-                <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl">🔐</span>
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#ffaa00]/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl sm:text-4xl">🔐</span>
                 </div>
-                <CardTitle>Secure Access</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl text-black">Secure Access</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-base">
-                  Implement role-based access controls ensuring appropriate data sharing while 
-                  maintaining privacy and security of sensitive health information.
-                </CardDescription>
+                <p className="text-gray-700 text-base leading-relaxed">
+                  Implement role-based access controls ensuring appropriate data sharing while maintaining privacy and security of sensitive health information.
+                </p>
               </CardContent>
             </Card>
           </div>
         </section>
 
         {/* Key Partners */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-inter font-bold text-center mb-8">
+        <section className="mb-12 sm:mb-16 px-2 sm:px-0">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-black">
             Key Partners & Stakeholders
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {team.map((member, index) => (
-              <Card key={index} className="hover:border-primary/20 transition-all duration-200">
+              <Card key={index} className="hover:border-[#ffaa00]/30 transition-all duration-200 bg-white/95 shadow-md hover:shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-xl">{member.name}</CardTitle>
-                  <CardDescription className="text-primary font-medium">
+                  <CardTitle className="text-lg sm:text-xl text-black">{member.name}</CardTitle>
+                  <CardDescription className="text-[#ffaa00] font-medium">
                     {member.role}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">{member.description}</p>
+                  <p className="text-gray-700">{member.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -215,85 +231,84 @@ const AboutPage = () => {
         </section>
 
         {/* User Testimonials */}
-        <section className="mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-inter font-bold mb-4 flex items-center justify-center">
-              <Users className="h-8 w-8 text-primary mr-3" />
-              Voices from the Field — Real Stories of Impact (Anambra State)
+        <section className="mb-12 sm:mb-16 px-2 sm:px-0">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 flex flex-col sm:flex-row items-center justify-center">
+              <span className="flex items-center">
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-[#ffaa00] mr-2 sm:mr-3 flex-shrink-0" />
+                <span>Voices from the Field</span>
+              </span>
+              <span className="text-lg sm:text-xl text-[#ffaa00] mt-1 sm:mt-0 sm:ml-2">
+                Real Stories of Impact
+              </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-700 max-w-2xl mx-auto">
               Voices from health workers and data professionals using spatial intelligence to strengthen primary health care and disease control across Anambra State
             </p>
           </div>
 
           {/* Testimonials Carousel */}
-          <div className="relative bg-gradient-to-br from-slate-50 via-orange-50/40 to-blue-50/30 rounded-3xl p-8 md:p-12 shadow-lg border border-slate-100">
+          <div className="relative bg-white/95 rounded-xl sm:rounded-2xl p-6 sm:p-8 md:p-10 shadow-lg border border-gray-100">
             {/* Subtle map watermark background with orange accent */}
             <div className="absolute inset-0 opacity-5">
-              <div className="absolute top-1/4 left-1/4 w-32 h-32 border border-slate-300 rounded-lg"></div>
-              <div className="absolute top-1/2 right-1/4 w-24 h-24 border border-orange-200 rounded-full"></div>
-              <div className="absolute bottom-1/4 left-1/3 w-40 h-20 border border-slate-300 rounded-lg"></div>
-              <div className="absolute top-1/3 right-1/3 w-28 h-28 border border-orange-200 rounded-lg"></div>
+              <div className="absolute top-1/4 left-1/4 w-20 sm:w-32 h-20 sm:h-32 border border-slate-300 rounded-lg"></div>
+              <div className="absolute top-1/2 right-1/4 w-16 sm:w-24 h-16 sm:h-24 border border-[#ffaa00] rounded-full"></div>
+              <div className="absolute bottom-1/4 left-1/3 w-24 sm:w-40 h-16 sm:h-20 border border-slate-300 rounded-lg"></div>
+              <div className="absolute top-1/3 right-1/3 w-20 sm:w-28 h-20 sm:h-28 border border-[#ffaa00] rounded-lg"></div>
             </div>
 
             <div className="relative z-10">
               {/* Navigation Arrows */}
-              <div className="flex justify-between items-center mb-8">
-                <Button
-                  variant="outline"
-                  size="icon"
+              <div className="flex items-center justify-between mb-6">
+                <button
                   onClick={prevTestimonial}
-                  className="rounded-full bg-white/80 hover:bg-white shadow-md"
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-[#ffaa00] focus:ring-offset-2"
+                  aria-label="Previous testimonial"
                 >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-
+                  <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600" />
+                </button>
                 <div className="flex space-x-2">
                   {testimonials.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentTestimonial(index)}
-                      className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                        index === currentTestimonial
-                          ? "bg-primary scale-125"
-                          : "bg-primary/30 hover:bg-primary/50"
+                      className={`h-2 w-2 sm:h-3 sm:w-3 rounded-full transition-colors ${
+                        index === currentTestimonial ? 'bg-[#ffaa00]' : 'bg-gray-300'
                       }`}
+                      aria-label={`Go to testimonial ${index + 1}`}
                     />
                   ))}
                 </div>
-
-                <Button
-                  variant="outline"
-                  size="icon"
+                <button
                   onClick={nextTestimonial}
-                  className="rounded-full bg-white/80 hover:bg-white shadow-md"
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-[#ffaa00] focus:ring-offset-2"
+                  aria-label="Next testimonial"
                 >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
+                  <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600" />
+                </button>
               </div>
 
               {/* Testimonial Content */}
               <div className="text-center max-w-4xl mx-auto">
-                <div className="mb-8">
-                  <Quote className="h-12 w-12 text-primary/30 mx-auto mb-4" />
-                  <blockquote className="text-lg md:text-xl text-slate-700 leading-relaxed italic mb-6">
+                <div className="text-center mb-2 sm:mb-8">
+                  <Quote className="h-8 w-8 sm:h-10 sm:w-10 text-[#ffaa00] mx-auto mb-3 sm:mb-4" />
+                  <p className="text-base sm:text-lg text-gray-700 mb-4 sm:mb-6 italic leading-relaxed">
                     "{testimonials[currentTestimonial].quote}"
-                  </blockquote>
-                </div>
-
-                <div className="flex items-center justify-center space-x-3">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <MapPin className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-semibold text-slate-800 text-lg">
+                  </p>
+                  <div className="space-y-1">
+                    <h4 className="text-base sm:text-lg font-semibold text-black">
                       {testimonials[currentTestimonial].name}
-                    </div>
-                    <div className="text-primary font-medium">
+                    </h4>
+                    <p className="text-sm text-[#ffaa00] font-medium">
                       {testimonials[currentTestimonial].role}
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      {testimonials[currentTestimonial].organization}, {testimonials[currentTestimonial].location}
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm text-gray-600 mt-1">
+                      <div className="flex items-center">
+                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        <span>{testimonials[currentTestimonial].organization}</span>
+                      </div>
+                      <span className="hidden sm:inline">•</span>
+                      <span>{testimonials[currentTestimonial].location}</span>
                     </div>
                   </div>
                 </div>
@@ -307,8 +322,8 @@ const AboutPage = () => {
                       key={index}
                       className={`h-1 rounded-full transition-all duration-300 ${
                         index === currentTestimonial
-                          ? "w-8 bg-primary"
-                          : "w-2 bg-primary/30"
+                          ? "w-8 bg-[#ffaa00]"
+                          : "w-2 bg-gray-300"
                       }`}
                     />
                   ))}
@@ -318,12 +333,78 @@ const AboutPage = () => {
           </div>
         </section>
 
+        {/* Impact Metrics */}
+        <section className="mb-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-inter font-bold mb-4">
+              Our Impact in Numbers
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Real results from transforming health data into actionable insights across Anambra State
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Card className="text-center bg-white/95 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardContent className="p-8 flex flex-col items-center justify-center space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Users className="h-8 w-8 text-[#ffaa00] flex-shrink-0" />
+                  <div className="text-left">
+                    <div className="text-4xl font-bold text-[#ffaa00]">2,500+</div>
+                    <div className="text-lg font-semibold text-foreground">Healthcare Workers</div>
+                    <div className="text-sm text-muted-foreground">Active platform users across Anambra State</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center bg-white/95 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardContent className="p-8 flex flex-col items-center justify-center space-y-3">
+                <div className="flex items-center space-x-3">
+                  <MapPin className="h-8 w-8 text-[#ffaa00] flex-shrink-0" />
+                  <div className="text-left">
+                    <div className="text-4xl font-bold text-[#ffaa00]">21</div>
+                    <div className="text-lg font-semibold text-foreground">LGAs Covered</div>
+                    <div className="text-sm text-muted-foreground">Complete statewide coverage</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center bg-white/95 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardContent className="p-8 flex flex-col items-center justify-center space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Database className="h-8 w-8 text-[#ffaa00] flex-shrink-0" />
+                  <div className="text-left">
+                    <div className="text-4xl font-bold text-[#ffaa00]">50M+</div>
+                    <div className="text-lg font-semibold text-foreground">Data Points</div>
+                    <div className="text-sm text-muted-foreground">Health records processed and analyzed</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center bg-white/95 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardContent className="p-8 flex flex-col items-center justify-center space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Award className="h-8 w-8 text-[#ffaa00] flex-shrink-0" />
+                  <div className="text-left">
+                    <div className="text-4xl font-bold text-[#ffaa00]">99.9%</div>
+                    <div className="text-lg font-semibold text-foreground">Data Accuracy</div>
+                    <div className="text-sm text-muted-foreground">Validated and quality-assured information</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         {/* Technology Stack */}
         <section className="mb-16">
           <h2 className="text-3xl font-inter font-bold text-center mb-8">
             Technology & Standards
           </h2>
-          <Card>
+          <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
             <CardContent className="p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
@@ -351,30 +432,28 @@ const AboutPage = () => {
           </Card>
         </section>
 
-        {/* CTA */}
-        <section className="text-center bg-gradient-primary rounded-2xl p-12">
-          <h2 className="text-3xl font-inter font-bold text-primary-foreground mb-4">
-            Ready to Explore Health Data?
-          </h2>
-          <p className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
-            Join us in transforming healthcare through data-driven insights and evidence-based decision making.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
-              <Link to="/repository">
-                Browse Data Repository
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-              <Link to="/login">
-                Get Access
-                <Users className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
+        {/* Interactive LGA Map Section */}
+        <section className="mb-16">
+          <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+            <CardContent className="p-8">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-inter font-bold mb-2">Anambra State LGAs</h2>
+                <p className="text-muted-foreground">Interactive map showing data coverage across all 21 Local Government Areas</p>
+              </div>
+              
+              <div className="w-full max-w-4xl mx-auto">
+                <InteractiveAnambraMap />
+              </div>
+              
+              <div className="mt-6 text-sm text-muted-foreground text-center">
+                <p>Hover over or tap on any LGA to view its details. Use the +/- buttons to zoom in and out.</p>
+                <p className="mt-2 text-xs">Note: This is a demo with sample data. Actual data will be displayed in the production version.</p>
+              </div>
+            </CardContent>
+          </Card>
         </section>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };

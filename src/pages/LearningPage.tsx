@@ -575,49 +575,77 @@ const LearningPage = () => {
                 <Video className="h-8 w-8 text-primary mr-3" />
                 Video Tutorials
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredVideos.map((tutorial, index) => (
-                  <Card key={index} className="overflow-hidden hover:shadow-lg transition-all duration-200">
-                    <div className="relative">
-                      <img
-                        src={tutorial.thumbnail}
-                        alt={tutorial.title}
-                        className="w-full h-48 object-cover"
-                      />
-                      <div className="absolute top-4 right-4">
-                        <Badge variant="secondary">{tutorial.duration}</Badge>
-                      </div>
-                    </div>
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-3">
-                        <Badge variant={tutorial.level === 'Beginner' ? 'default' : tutorial.level === 'Intermediate' ? 'secondary' : 'destructive'}>
-                          {tutorial.level}
-                        </Badge>
-                        <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span>{tutorial.rating}</span>
+              
+              {/* Featured Playlist Section */}
+              <div className="mb-12">
+                <h3 className="text-2xl font-semibold mb-4 flex items-center">
+                  <Layers className="mr-2 h-6 w-6 text-[#ffaa00]" />
+                  Featured Playlist
+                </h3>
+                <div className="bg-gradient-to-r from-amber-50 to-white p-6 rounded-xl border border-amber-100">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <div className="md:w-1/3">
+                      <a href="https://youtu.be/rCnBpJ6h1fU?si=eoRRQpzpXSuPfjPp" target="_blank" rel="noopener noreferrer" className="block group">
+                        <div className="relative aspect-video rounded-lg overflow-hidden shadow-md">
+                          <img 
+                            src="https://img.youtube.com/vi/rCnBpJ6h1fU/maxresdefault.jpg" 
+                            alt="QGIS & Geospatial Analysis Playlist"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="bg-white/90 rounded-full p-3">
+                              <Play className="h-6 w-6 text-[#ffaa00]" fill="currentColor" />
+                            </div>
+                          </div>
+                          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                            24 videos
+                          </div>
                         </div>
+                      </a>
+                    </div>
+                    <div className="md:w-2/3">
+                      <h4 className="text-xl font-semibold mb-2">QGIS & Geospatial Analysis</h4>
+                      <p className="text-muted-foreground mb-4">
+                        A comprehensive collection of QGIS tutorials and geospatial analysis techniques. This playlist covers everything from basic GIS concepts to advanced spatial analysis methods.
+                      </p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <Badge variant="secondary">QGIS</Badge>
+                        <Badge variant="secondary">Spatial Analysis</Badge>
+                        <Badge variant="secondary">Data Visualization</Badge>
+                        <Badge variant="secondary">Beginner to Advanced</Badge>
                       </div>
-                      <h3 className="font-semibold text-lg mb-2">{tutorial.title}</h3>
-                      <p className="text-muted-foreground mb-4 text-sm">{tutorial.description}</p>
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-sm text-muted-foreground">By {tutorial.instructor}</span>
-                        <span className="text-sm text-muted-foreground">{tutorial.views} views</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {tutorial.topics.map((topic, topicIndex) => (
-                          <Badge key={topicIndex} variant="outline" className="text-xs">
-                            {topic}
-                          </Badge>
-                        ))}
-                      </div>
-                      <Button asChild className="w-full">
-                        <a href={tutorial.url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Watch on YouTube
+                      <Button asChild>
+                        <a href="https://youtu.be/rCnBpJ6h1fU?si=eoRRQpzpXSuPfjPp" target="_blank" rel="noopener noreferrer">
+                          <Play className="h-4 w-4 mr-2" />
+                          Watch Playlist on YouTube
                         </a>
                       </Button>
-                    </CardContent>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <h3 className="text-2xl font-semibold mb-6 mt-12">Individual Tutorials</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredVideos.map((tutorial, index) => (
+                  <Card key={index} className="overflow-hidden hover:shadow-lg transition-all duration-200 group">
+                    <a href={tutorial.url} target="_blank" rel="noopener noreferrer" className="block">
+                      <div className="relative aspect-video overflow-hidden">
+                        <img
+                          src={tutorial.thumbnail}
+                          alt={tutorial.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="bg-white/90 rounded-full p-4 transform transition-transform group-hover:scale-110">
+                            <Play className="h-8 w-8 text-[#ffaa00]" fill="currentColor" />
+                          </div>
+                        </div>
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold text-lg line-clamp-2">{tutorial.title}</h3>
+                      </CardContent>
+                    </a>
                   </Card>
                 ))}
               </div>
@@ -800,32 +828,52 @@ const LearningPage = () => {
 
           {/* Learning Path Tab */}
           <TabsContent value="path" className="space-y-8 mt-8 bg-white rounded-2xl p-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-inter font-bold mb-4">Recommended Learning Path</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Follow this structured progression to master geospatial data skills for health applications.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {learningPath.map((step, index) => {
-                const Icon = step.icon;
-                return (
-                  <Card key={index} className="text-center hover:shadow-lg transition-all duration-200">
-                    <CardContent className="p-6">
-                      <div className={`w-16 h-16 ${step.color} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                        <Icon className="h-8 w-8 text-white" />
+            <div className="space-y-8">
+              {[
+                {
+                  title: 'Getting Started',
+                  description: 'Learn the basics of geospatial analysis',
+                  icon: Map,
+                  color: 'bg-blue-100 text-blue-600',
+                  steps: 3
+                },
+                {
+                  title: 'Intermediate Skills',
+                  description: 'Advance your geospatial analysis techniques',
+                  icon: Layers,
+                  color: 'bg-purple-100 text-purple-600',
+                  steps: 4
+                },
+                {
+                  title: 'Advanced Applications',
+                  description: 'Master complex geospatial workflows',
+                  icon: BarChart3,
+                  color: 'bg-green-100 text-green-600',
+                  steps: 3
+                }
+              ].map((step, index) => (
+                <Card key={index} className="overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4">
+                      <div className={`w-16 h-16 ${step.color} rounded-full flex items-center justify-center flex-shrink-0`}>
+                        <step.icon className="h-8 w-8" />
                       </div>
-                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-xl font-bold text-primary-foreground">{step.step}</span>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold">{step.title}</h3>
+                        <p className="text-muted-foreground mb-2">{step.description}</p>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <span>{step.steps} steps</span>
+                          <span className="mx-2">•</span>
+                          <Button variant="link" className="p-0 h-auto text-blue-600">
+                            Start Learning
+                            <ArrowRight className="ml-1 h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
-                      <p className="text-sm text-muted-foreground mb-2">{step.description}</p>
-                      <Badge variant="outline" className="text-xs">{step.duration}</Badge>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </TabsContent>
         </Tabs>

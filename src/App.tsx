@@ -99,6 +99,9 @@ import AboutPage from "@/pages/AboutPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import SubmitDataPage from "@/pages/SubmitDataPage";
 import LearningPage from "@/pages/LearningPage";
+import DatasetsList from "@/pages/Datasets/DatasetsList";
+import DatasetDetail from "@/pages/Datasets/DatasetDetail";
+import DataPortal from "@/pages/DataPortal";
 
 import PublicDashboard from "@/pages/dashboards/PublicDashboard";
 import PartnerDashboard from "@/pages/dashboards/PartnerDashboard";
@@ -136,7 +139,9 @@ const App = () => {
                     <Routes>
                       <Route path="/" element={<HomePage />} />
                       <Route path="/about" element={<AboutPage />} />
-                      <Route path="/repository" element={<RepositoryPage />} />
+                      <Route path="/dataportal" element={<DataPortal />} />
+                      <Route path="/repository" element={<DataPortal />} />
+                      <Route path="/datasets" element={<DataPortal />} />
                       <Route path="/submit" element={<SubmitDataPage />} />
                       <Route path="/analytics" element={<AnalyticsPage />} />
                       <Route path="/tools" element={<LearningPage />} />

@@ -2,29 +2,48 @@ import { useEffect, useState } from "react";
 import { ArrowUp } from "lucide-react";
 
 const BackToTop = () => {
-  const [visible, setVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY || document.documentElement.scrollTop;
-      setVisible(y > 200);
+    const toggleVisibility = () => {
+      // Check if scrolled to bottom (within 100px of the bottom)
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const bottomThreshold = document.documentElement.scrollHeight - 100;
+      
+      // Show button only when near bottom of page
+      if (scrollPosition >= bottomThreshold) {
+        setIsAtBottom(true);
+        // Only show if scrolled down more than 300px
+        setIsVisible(window.scrollY > 300);
+      } else {
+        setIsAtBottom(false);
+        setIsVisible(false);
+      }
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
+    return () => window.removeEventListener('scroll', toggleVisibility);
   }, []);
 
-  if (!visible) return null;
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
+  if (!isVisible) return null;
 
   return (
     <button
-      type="button"
-      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      onClick={scrollToTop}
       aria-label="Back to top"
-      className="fixed bottom-24 right-4 sm:bottom-28 sm:right-6 z-40 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground shadow-lg hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-ring px-4 py-3 transition"
+      className={`fixed right-6 z-40 p-3 rounded-full bg-[#ffaa00] text-white shadow-lg hover:bg-[#e69500] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#ffaa00] focus:ring-opacity-50 ${
+        isAtBottom ? 'bottom-24' : 'bottom-6'
+      }`}
     >
       <ArrowUp className="w-5 h-5" />
-      <span className="hidden sm:inline text-sm font-medium">Top</span>
     </button>
   );
 };

@@ -12,7 +12,7 @@ const Header = () => {
   const navigation = [
     { name: "Home", href: "/", icon: Home },
     { name: "About", href: "/about", icon: Info },
-    { name: "Data Repository", href: "/repository", icon: Database },
+    { name: "Data Portal", href: "/dataportal", icon: Database },
     { name: "Submit Data", href: "/submit", icon: Upload },
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
     { name: "Tools & Learning", href: "/learning", icon: BookOpen },
@@ -37,18 +37,10 @@ const Header = () => {
               <h1 className="text-xl font-inter font-bold text-foreground">
                 Anambra GeoHub
               </h1>
-              <p className="text-xs text-muted-foreground">Health Data Repository</p>
+              <p className="text-xs text-muted-foreground">Health Data Portal</p>
             </div>
           </Link>
 
-          {/* Mobile Center Logo - Only on small screens */}
-          <div className="flex md:hidden items-center justify-center absolute left-1/2 transform -translate-x-1/2">
-              <div className="flex items-center space-x-2 px-3 py-1 bg-gradient-primary rounded-full">
-                  <span className="text-primary-foreground font-semibold text-sm text-center">
-                      Anambra Health GeoHub
-                  </span>
-              </div>
-          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
@@ -96,7 +88,7 @@ const Header = () => {
                   </div>
                   <div>
                     <h2 className="font-inter font-bold">Anambra GeoHub</h2>
-                    <p className="text-xs text-muted-foreground">Health Data Repository</p>
+                    <p className="text-xs text-muted-foreground">Health Data Portal</p>
                   </div>
                 </div>
               </div>

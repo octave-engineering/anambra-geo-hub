@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Aguata"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[7.0, 6.0], [7.1, 6.1], [7.2, 6.0], [7.1, 5.9], [7.0, 6.0]]]
+      }
+    },
+    // Note: This is a simplified example. You'll need to add actual coordinates for all 21 LGAs
+    // For brevity, I'm showing the structure. The actual file should have all 21 LGAs with proper coordinates
+  ]
+}
