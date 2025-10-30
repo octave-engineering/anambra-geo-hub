@@ -41,6 +41,10 @@ const Header = () => {
             </div>
           </Link>
 
+          {/* Mobile Title - Only on small screens */}
+          <div className="md:hidden absolute left-1/2 transform -translate-x-1/2">
+            <span className="text-primary-foreground font-semibold text-sm text-center">Anambra Health GeoHub</span>
+          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
