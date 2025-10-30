@@ -90,13 +90,6 @@ const Footer = () => {
                 Analytics
               </Link>
               <Link
-                to="/tools"
-                onClick={handleLinkClick}
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                Tools
-              </Link>
-              <Link
                 to="/learning"
                 onClick={handleLinkClick}
                 className="text-muted-foreground hover:text-primary transition-colors"

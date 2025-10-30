@@ -75,34 +75,33 @@ const HomePage = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden text-center">
-        {/* Background Image Container */}
-        <div
-          className="absolute inset-0 w-full h-full"
-          style={{
-            backgroundImage: `url(${landingPageImage})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
-
-        {/* Semi-transparent overlay for better text contrast */}
-        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(255, 170, 0, 0.2)' }}></div>
+        {/* Video Background */}
+        <div className="absolute inset-0 w-full h-full -z-10">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/src/assets/Map-Video.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          {/* Dark overlay for better text contrast */}
+          <div className="absolute inset-0 bg-black/50"></div>
+        </div>
         
         {/* Hero Content */}
         <div className="container mx-auto px-4 py-20 relative z-10">
           <div className="max-w-4xl mx-auto">
-            <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8 mb-8 w-full">
-              {/* Very subtle overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#ffaa00]/05 via-[#ffaa00]/01 via-30% to-transparent to-80% backdrop-blur-sm"></div>
-              <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-              
+            <div className="relative">
               {/* Content */}
               <div className="relative z-10">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 leading-tight text-center text-gray-900">
-                  <div className="block">Welcome To</div>
-                  <div className="block whitespace-nowrap">Anambra Health GeoHub</div>
+                <h1 className="font-bold leading-tight text-center text-[#ffaa00] px-4">
+                  <div className="text-4xl sm:text-5xl lg:text-6xl whitespace-nowrap mb-1">Welcome To</div>
+                  <div className="text-4xl sm:text-5xl lg:text-6xl whitespace-normal break-words mb-6">Anambra Health GeoHub</div>
                 </h1>
-                <p className="text-xl md:text-2xl text-gray-800 font-semibold max-w-3xl mx-auto leading-relaxed text-center">
+                <p className="text-xl md:text-2xl text-white font-semibold max-w-3xl mx-auto leading-relaxed text-center mb-10">
                   Harness the power of health and geospatial data to drive smarter decisions across Anambra State.
                 </p>
               </div>
@@ -112,9 +111,9 @@ const HomePage = () => {
               <Button
                 asChild
                 size="lg"
-                className="w-full sm:w-auto bg-[#ffaa00] border-2 border-[#ffaa00] text-white hover:bg-[#ffaa00] hover:border-[#ffaa00] transition-all duration-200 hover:shadow-lg"
+                className="w-auto px-8 mx-auto sm:mx-0 bg-[#ffaa00] border-2 border-[#ffaa00] text-white hover:bg-[#ffaa00] hover:border-[#ffaa00] transition-all duration-200 hover:shadow-lg"
               >
-                <Link to="/dataportal">
+                <Link to="/dataportal" className="whitespace-nowrap">
                   Browse Repository
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
@@ -131,7 +130,7 @@ const HomePage = () => {
             <h2 className="text-3xl md:text-4xl font-inter font-bold text-foreground mb-4">
               Powerful Features for Health Data Management
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-xl text-gray-800 font-medium max-w-3xl mx-auto">
               Comprehensive tools and capabilities to manage, analyze, and visualize health data across Anambra State
             </p>
           </div>
@@ -166,7 +165,7 @@ const HomePage = () => {
             <h2 className="text-3xl md:text-4xl font-inter font-bold text-foreground mb-4">
               Health Facilities in Anambra State
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-gray-800 font-medium max-w-2xl mx-auto">
               Comprehensive healthcare infrastructure serving communities across all 21 Local Government Areas
             </p>
           </div>
@@ -230,7 +229,7 @@ const HomePage = () => {
             <h2 className="text-3xl md:text-4xl font-inter font-bold text-foreground mb-4">
               Real-World Applications
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-gray-800 font-medium max-w-2xl mx-auto">
               See how Anambra GeoHub transforms health data into actionable insights
             </p>
           </div>
