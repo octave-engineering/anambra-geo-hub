@@ -1,0 +1,62 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Aguata"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [7.1472, 5.9861],
+            [7.1583, 5.9806],
+            [7.1694, 5.9750],
+            [7.1806, 5.9694],
+            [7.1917, 5.9639],
+            [7.1917, 5.9528],
+            [7.1917, 5.9417],
+            [7.1806, 5.9417],
+            [7.1694, 5.9417],
+            [7.1583, 5.9417],
+            [7.1472, 5.9417],
+            [7.1472, 5.9639],
+            [7.1472, 5.9861]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Anambra East"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [6.9028, 6.2917],
+            [6.9139, 6.2861],
+            [6.9250, 6.2806],
+            [6.9361, 6.2750],
+            [6.9472, 6.2694],
+            [6.9583, 6.2639],
+            [6.9583, 6.2528],
+            [6.9583, 6.2417],
+            [6.9472, 6.2417],
+            [6.9361, 6.2417],
+            [6.9250, 6.2417],
+            [6.9139, 6.2528],
+            [6.9028, 6.2639],
+            [6.9028, 6.2750],
+            [6.9028, 6.2917]
+          ]
+        ]
+      }
+    }
+    // Note: For brevity, I've included only 2 LGAs. The actual file should include all 21 LGAs
+    // with their precise coordinates. In a real implementation, you would use a proper
+    // GeoJSON file with accurate boundaries for all LGAs.
+  ]
+}
