@@ -82,6 +82,8 @@ const HomePage = () => {
             loop
             muted
             playsInline
+            disablePictureInPicture
+            disableRemotePlayback
             className="absolute inset-0 w-full h-full object-cover"
           >
             <source src="/src/assets/Map-Video.mp4" type="video/mp4" />
