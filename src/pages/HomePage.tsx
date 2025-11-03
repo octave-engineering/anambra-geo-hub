@@ -86,7 +86,7 @@ const HomePage = () => {
             disableRemotePlayback
             className="absolute inset-0 w-full h-full object-cover"
           >
-            <source src="/Map-Video.mp4" type="video/mp4" />
+            <source src={`${process.env.PUBLIC_URL}/Map-Video.mp4`} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           {/* Dark overlay for better text contrast */}
