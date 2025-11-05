@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 import { 
   BookOpen, 
   Play, 
@@ -20,7 +22,7 @@ import {
   Monitor,
   Map,
   Layers,
-  Search,
+  Search as SearchIcon,
   Filter,
   Server,
   Code,
@@ -40,6 +42,30 @@ import {
 
 const LearningPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 5000 })]);
+  
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  const heroSlides = [
+    {
+      image: "/src/assets/IMG_20250828_130600_349.jpg",
+      title: "Empowering Communities Through Geospatial Education",
+      description: "Access free learning resources to enhance your geospatial skills and knowledge.",
+      buttonText: "Start Learning"
+    },
+    {
+      image: "/src/assets/health-workers.png",
+      title: "Join Our Community of Health Workers",
+      description: "Connect with professionals and access specialized training materials.",
+      buttonText: "Start Learning"
+    }
+  ];
 
   // Recent YouTube Tutorials (2024-2025)
   const videoTutorials = [
@@ -514,8 +540,69 @@ const LearningPage = () => {
   );
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4">
+    <div className="w-full">
+      {/* Hero Section with Slider */}
+      <div className="relative w-full h-[500px] overflow-hidden">
+        <div className="embla__viewport w-full h-full" ref={emblaRef}>
+          <div className="embla__container flex h-full">
+            {heroSlides.map((slide, index) => (
+              <div key={index} className="embla__slide flex-[0_0_100%] min-w-0 relative">
+                <div 
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${slide.image})` }}
+                >
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="text-center text-white max-w-3xl px-4">
+                      <h1 className="text-4xl md:text-5xl font-bold mb-4">{slide.title}</h1>
+                      <p className="text-xl mb-8">{slide.description}</p>
+                      <Button 
+                        size="lg" 
+                        className="bg-[#ffaa00] hover:bg-[#ffaa00]/90 text-white"
+                        onClick={() => {
+                          const toolsSection = document.querySelector('h1:has-text("Tools & Learning")')?.closest('section, div');
+                          if (toolsSection) {
+                            toolsSection.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                      >
+                        {slide.buttonText}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Navigation Buttons */}
+        <button 
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white bg-opacity-30 hover:bg-opacity-50 rounded-full p-2"
+          onClick={scrollPrev}
+        >
+          <ChevronLeft className="w-8 h-8 text-white" />
+        </button>
+        <button 
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white bg-opacity-30 hover:bg-opacity-50 rounded-full p-2"
+          onClick={scrollNext}
+        >
+          <ChevronRight className="w-8 h-8 text-white" />
+        </button>
+        
+        {/* Dots Indicator */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+          {heroSlides.map((_, index) => (
+            <button 
+              key={index}
+              className="w-3 h-3 rounded-full bg-white bg-opacity-50 hover:bg-opacity-100 transition-all"
+              onClick={() => emblaApi?.scrollTo(index)}
+            />
+          ))}
+        </div>
+      </div>
+      
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
         {/* Header with Banner */}
         <div className="relative mb-16">
           <div className="bg-white/90 rounded-2xl p-12 text-center shadow-sm">
@@ -523,7 +610,7 @@ const LearningPage = () => {
               <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center shadow-amber">
                 <BookOpen className="h-8 w-8 text-primary-foreground" />
               </div>
-            <div className="text-left">
+              <div className="text-left">
                 <h1 className="text-4xl md:text-5xl font-inter font-bold text-foreground">
                   Tools & Learning
                 </h1>
@@ -538,7 +625,7 @@ const LearningPage = () => {
         {/* Search Bar */}
         <div className="mb-8">
           <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search tutorials, topics, or keywords..."
               value={searchTerm}
@@ -552,19 +639,19 @@ const LearningPage = () => {
         <Tabs defaultValue="videos" className="w-full">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 bg-white border-2 border-primary/20 rounded-xl shadow-lg">
             <TabsTrigger value="videos" className="rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-[#ffa600] data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-[#ffa600] hover:bg-[#ffa600]/80 hover:text-white border border-primary/10">
-              🎥 Video Tutorials
+              Video Tutorials
             </TabsTrigger>
             <TabsTrigger value="ebooks" className="rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-[#ffa600] data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-[#ffa600] hover:bg-[#ffa600]/80 hover:text-white border border-primary/10">
-              📚 E-Books & Guides
+              E-Books & Guides
             </TabsTrigger>
             <TabsTrigger value="tools" className="rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-[#ffa600] data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-[#ffa600] hover:bg-[#ffa600]/80 hover:text-white border border-primary/10">
-              🔧 Core Tools
+              Core Tools
             </TabsTrigger>
             <TabsTrigger value="datasets" className="rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-[#ffa600] data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-[#ffa600] hover:bg-[#ffa600]/80 hover:text-white border border-primary/10">
-              🧩 Sample Data & Tutorials
+              Sample Data & Tutorials
             </TabsTrigger>
             <TabsTrigger value="path" className="rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-[#ffa600] data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-[#ffa600] hover:bg-[#ffa600]/80 hover:text-white border border-primary/10">
-              💡 Learning Path
+              Learning Path
             </TabsTrigger>
           </TabsList>
 

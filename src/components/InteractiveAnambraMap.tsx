@@ -335,9 +335,8 @@ const InteractiveAnambraMap: React.FC = () => {
           </div>
         </div>
       </div>
-      <style jsx global>{`
-        /* Base tooltip styles */
-        .custom-tooltip {
+      <style>{`
+        .interactive-map .custom-tooltip {
           background: transparent !important;
           border: none !important;
           box-shadow: none !important;
@@ -345,27 +344,27 @@ const InteractiveAnambraMap: React.FC = () => {
           pointer-events: none;
         }
         
-        .custom-tooltip-container {
+        .interactive-map .custom-tooltip-container {
           min-width: 200px;
           pointer-events: none;
         }
         
         /* Scrollbar styles for dataset panel */
-        ::-webkit-scrollbar {
+        .interactive-map ::-webkit-scrollbar {
           width: 6px;
         }
         
-        ::-webkit-scrollbar-track {
+        .interactive-map ::-webkit-scrollbar-track {
           background: #f1f1f1;
           border-radius: 3px;
         }
         
-        ::-webkit-scrollbar-thumb {
+        .interactive-map ::-webkit-scrollbar-thumb {
           background: #c1c1c1;
           border-radius: 3px;
         }
         
-        ::-webkit-scrollbar-thumb:hover {
+        .interactive-map ::-webkit-scrollbar-thumb:hover {
           background: #a8a8a8;
         }
         
@@ -375,7 +374,7 @@ const InteractiveAnambraMap: React.FC = () => {
           to { transform: translateX(0); opacity: 1; }
         }
         
-        .dataset-panel-enter {
+        .interactive-map .dataset-panel-enter {
           animation: slideIn 0.3s ease-out forwards;
         }
       `}</style>

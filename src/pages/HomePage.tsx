@@ -1,9 +1,10 @@
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Database, Map, BarChart3, Users, Shield, Zap } from "lucide-react";
 import phcFacility from "@/assets/phc-facility-1.jpg";
-import healthWorkers from "@/assets/health-workers.jpg";
+import healthWorkers from "@/assets/health-workers.png";
 import ruralHealthFacility from "@/assets/rural-health-facility.jpg";
 import heroImage from "@/assets/map.png";
 import heroBg from "@/assets/hero-bg-main.svg";
@@ -50,6 +51,20 @@ const HomePage = () => {
     },
   ];
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Reset video when component unmounts
+  useEffect(() => {
+    const video = videoRef.current;
+    
+    return () => {
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+      }
+    };
+  }, []);
+
   const useCases = [
     {
       title: "Disease Surveillance",
@@ -74,7 +89,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden text-center">
+      <section className="relative min-h-[80vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden text-center px-4 sm:px-6">
         {/* Video Background */}
         <div className="absolute inset-0 w-full h-full -z-10">
           <video
@@ -94,30 +109,30 @@ const HomePage = () => {
         </div>
         
         {/* Hero Content */}
-        <div className="container mx-auto px-4 py-20 relative z-10">
+        <div className="container mx-auto px-4 py-16 sm:py-20 relative z-10">
           <div className="max-w-4xl mx-auto">
             <div className="relative">
               {/* Content */}
               <div className="relative z-10">
-                <h1 className="font-bold leading-tight text-center text-[#ffaa00] px-4">
-                  <div className="text-4xl sm:text-5xl lg:text-6xl whitespace-nowrap mb-1">Welcome To</div>
-                  <div className="text-4xl sm:text-5xl lg:text-6xl whitespace-normal break-words mb-6">Anambra Health GeoHub</div>
+                <h1 className="font-bold leading-tight text-center text-[#ffaa00] px-2 sm:px-4">
+                  <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-2 sm:mb-1">Welcome To</div>
+                  <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-6 md:mb-8 leading-tight">Anambra Health GeoHub</div>
                 </h1>
-                <p className="text-xl md:text-2xl text-white font-semibold max-w-3xl mx-auto leading-relaxed text-center mb-10">
+                <p className="text-lg sm:text-xl md:text-2xl text-white font-medium sm:font-semibold max-w-3xl mx-auto leading-relaxed text-center mb-8 sm:mb-10 px-2 sm:px-4">
                   Harness the power of health and geospatial data to drive smarter decisions across Anambra State.
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
               <Button
                 asChild
                 size="lg"
-                className="w-auto px-8 mx-auto sm:mx-0 bg-[#ffaa00] border-2 border-[#ffaa00] text-white hover:bg-[#ffaa00] hover:border-[#ffaa00] transition-all duration-200 hover:shadow-lg"
+                className="w-full sm:w-auto px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg bg-[#ffaa00] border-2 border-[#ffaa00] text-white hover:bg-[#ffaa00] hover:border-[#ffaa00] transition-all duration-200 hover:shadow-lg"
               >
-                <Link to="/dataportal" className="whitespace-nowrap">
+                <Link to="/dataportal" className="whitespace-nowrap flex items-center justify-center">
                   Browse Repository
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" />
                 </Link>
               </Button>
             </div>
@@ -126,30 +141,33 @@ const HomePage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-inter font-bold text-foreground mb-4">
+      <section className="py-12 sm:py-16 md:py-20 bg-muted/30">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-16 px-2 sm:px-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-inter font-bold text-foreground mb-3 sm:mb-4">
               Powerful Features for Health Data Management
             </h2>
-            <p className="text-xl text-gray-800 font-medium max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-700 sm:text-gray-800 font-medium max-w-3xl mx-auto">
               Comprehensive tools and capabilities to manage, analyze, and visualize health data across Anambra State
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <Card key={index} className="border hover:border-primary/20 transition-all duration-200 hover:shadow-card">
-                  <CardHeader>
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                      <Icon className="h-6 w-6 text-primary" />
+                <Card 
+                  key={index} 
+                  className="h-full border hover:border-primary/20 transition-all duration-200 hover:shadow-card"
+                >
+                  <CardHeader className="pb-3 sm:pb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                      <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription className="text-base leading-relaxed">
+                    <CardDescription className="text-sm sm:text-base leading-relaxed">
                       {feature.description}
                     </CardDescription>
                   </CardContent>
@@ -161,90 +179,86 @@ const HomePage = () => {
       </section>
 
       {/* Health Facilities Section */}
-      <section className="py-20 bg-muted/20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-inter font-bold text-foreground mb-4">
+      <section className="py-12 sm:py-16 md:py-20 bg-muted/20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-16 px-2 sm:px-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-inter font-bold text-foreground mb-3 sm:mb-4">
               Health Facilities in Anambra State
             </h2>
-            <p className="text-xl text-gray-800 font-medium max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-700 sm:text-gray-800 font-medium max-w-2xl mx-auto">
               Comprehensive healthcare infrastructure serving communities across all 21 Local Government Areas
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="overflow-hidden border hover:border-primary/20 transition-all duration-200 hover:shadow-card">
-              <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={phcFacility} 
-                  alt="Primary Health Care Facility" 
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold text-foreground mb-2">Primary Health Care Centers</h3>
-                <p className="text-muted-foreground">
-                  Modern PHC facilities providing essential healthcare services including maternal health, immunization, and basic medical care to communities across Anambra State.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden border hover:border-primary/20 transition-all duration-200 hover:shadow-card">
-              <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={healthWorkers} 
-                  alt="Healthcare Workers" 
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold text-foreground mb-2">Healthcare Professionals</h3>
-                <p className="text-muted-foreground">
-                  Dedicated medical professionals working tirelessly to provide quality healthcare services, disease surveillance, and health education to communities.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden border hover:border-primary/20 transition-all duration-200 hover:shadow-card">
-              <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={ruralHealthFacility} 
-                  alt="Rural Health Facility" 
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold text-foreground mb-2">Rural Health Facilities</h3>
-                <p className="text-muted-foreground">
-                  Community-based health facilities equipped with modern medical equipment and sustainable power solutions to serve rural populations effectively.
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              {
+                image: phcFacility,
+                title: "Primary Health Care Centers",
+                description: "Modern PHC facilities providing essential healthcare services including maternal health, immunization, and basic medical care to communities across Anambra State.",
+                alt: "Primary Health Care Facility"
+              },
+              {
+                image: healthWorkers,
+                title: "Healthcare Professionals",
+                description: "Dedicated medical professionals working tirelessly to provide quality healthcare services, disease surveillance, and health education to communities.",
+                alt: "Healthcare Workers"
+              },
+              {
+                image: ruralHealthFacility,
+                title: "Rural Health Facilities",
+                description: "Community-based health facilities equipped with modern medical equipment and sustainable power solutions to serve rural populations effectively.",
+                alt: "Rural Health Facility"
+              }
+            ].map((item, index) => (
+              <Card 
+                key={index}
+                className="h-full overflow-hidden border hover:border-primary/20 transition-all duration-200 hover:shadow-card flex flex-col"
+              >
+                <div className="relative h-48 sm:h-52 md:h-56 overflow-hidden">
+                  <img 
+                    src={item.image} 
+                    alt={item.alt}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                </div>
+                <CardContent className="p-4 sm:p-5 md:p-6 flex-1 flex flex-col">
+                  <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2 sm:mb-3">{item.title}</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground mt-auto">
+                    {item.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Use Cases Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-inter font-bold text-foreground mb-4">
+      <section className="py-12 sm:py-16 md:py-20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-16 px-2 sm:px-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-inter font-bold text-foreground mb-3 sm:mb-4">
               Real-World Applications
             </h2>
-            <p className="text-xl text-gray-800 font-medium max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-700 sm:text-gray-800 font-medium max-w-2xl mx-auto">
               See how Anambra GeoHub transforms health data into actionable insights
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {useCases.map((useCase, index) => (
-              <Card key={index} className="text-center border hover:border-primary/20 transition-all duration-200 hover:shadow-card">
-                <CardHeader>
-                  <div className="text-6xl mb-4">{useCase.image}</div>
-                  <CardTitle className="text-xl">{useCase.title}</CardTitle>
+              <Card 
+                key={index} 
+                className="h-full text-center border hover:border-primary/20 transition-all duration-200 hover:shadow-card flex flex-col"
+              >
+                <CardHeader className="pb-2 sm:pb-3">
+                  <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">{useCase.image}</div>
+                  <CardTitle className="text-lg sm:text-xl">{useCase.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base">
+                <CardContent className="flex-1">
+                  <CardDescription className="text-sm sm:text-base">
                     {useCase.description}
                   </CardDescription>
                 </CardContent>
@@ -255,19 +269,23 @@ const HomePage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-hero">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-inter font-bold text-primary-foreground mb-6">
+      <section className="py-16 sm:py-20 md:py-24 bg-gradient-hero">
+        <div className="container mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-inter font-bold text-primary-foreground mb-4 sm:mb-6">
             Ready to Explore Health Data?
           </h2>
-          <p className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
             Join thousands of health professionals, researchers, and policymakers using Anambra GeoHub to make data-driven decisions.
           </p>
           <div className="flex justify-center">
-            <Button asChild size="lg" className="bg-[#ffaa00] border-2 border-[#ffaa00] text-white hover:bg-[#ffaa00] hover:border-[#ffaa00] transition-all duration-200 px-8 hover:shadow-lg">
-              <Link to="/dataportal">
+            <Button 
+              asChild 
+              size="lg" 
+              className="w-full sm:w-auto px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg bg-[#ffaa00] border-2 border-[#ffaa00] text-white hover:bg-[#ffaa00] hover:border-[#ffaa00] transition-all duration-200 hover:shadow-lg"
+            >
+              <Link to="/dataportal" className="flex items-center justify-center">
                 Browse Repository
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" />
               </Link>
             </Button>
           </div>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Search, Filter, Eye, Info, Database, ArrowLeft } from "lucide-react";
+import { Download, Search, Filter, Info, Database, ArrowLeft } from "lucide-react";
 import { healthDatasets, getDatasetsByCategory, getDatasetsByAccessLevel, getDatasetById, getDatasetsByPortal, getUniquePortals, groupDatasetsByPortal } from "@/data/datasets";
 import { toast } from "@/hooks/use-toast";
 
@@ -88,85 +88,7 @@ const DataPortal = () => {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Database className="h-8 w-8 text-primary" />
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">{healthDatasets.length}</div>
-                    <div className="text-sm text-muted-foreground">Total Datasets</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <span className="text-green-600 font-bold text-sm">P</span>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {uniquePortals.length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Data Portals</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <span className="text-blue-600 font-bold text-sm">S</span>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {healthDatasets.filter(d => d.type === 'Spatial' || d.type === 'Spatial + Attribute').length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Spatial Data</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-[#ffaa00]/10 rounded-lg flex items-center justify-center">
-                    <span className="text-[#ffaa00] font-bold text-sm">M</span>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {healthDatasets.filter(d => d.accessLevel === 'public').length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Public Access</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Access Level Notice */}
-          <div className="mb-6">
-            <div className="bg-[#ffaa00]/10 border border-[#ffaa00]/20 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-[#ffaa00] rounded-full"></div>
-                <span className="text-sm text-[#ffaa00]">
-                  You are viewing datasets with <strong>Public Access</strong>.
-                  <Button variant="link" className="ml-2 p-0 h-auto text-[#ffaa00]" asChild>
-                    <Link to="/login">Login for more datasets</Link>
-                  </Button>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Dataset Categories */}
+{/* Dataset Categories */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <Card className="border-l-4 border-l-[#ffaa00]">
               <CardHeader className="pb-3">
@@ -278,8 +200,7 @@ const DataPortal = () => {
             </div>
 
             <div className="mt-4 flex items-center justify-between">
-              <div className="text-sm text-muted-foreground flex items-center">
-                <Eye className="h-4 w-4 mr-2 text-primary" />
+              <div className="text-sm text-muted-foreground">
                 {filteredDatasets.length} datasets found
               </div>
               <Button
@@ -363,9 +284,6 @@ const DataPortal = () => {
                                   </a>
                                 </Button>
                               )}
-                              <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4" />
-                              </Button>
                               <Button
                                 variant="outline"
                                 size="sm"

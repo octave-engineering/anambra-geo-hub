@@ -15,6 +15,7 @@ const Header = () => {
     { name: "Data Portal", href: "/dataportal", icon: Database },
     { name: "Submit Data", href: "/submit", icon: Upload },
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
+    { name: "GIS Mapping", href: "/gis-mapping", icon: MapPin },
     { name: "Tools & Learning", href: "/learning", icon: BookOpen },
   ];
 
