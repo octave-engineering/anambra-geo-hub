@@ -54,13 +54,13 @@ const LearningPage = () => {
 
   const heroSlides = [
     {
-      image: "/src/assets/IMG_20250828_130600_349.jpg",
+      image: "/images/IMG_20250828_130600_349.jpg",
       title: "Empowering Communities Through Geospatial Education",
       description: "Access free learning resources to enhance your geospatial skills and knowledge.",
       buttonText: "Start Learning"
     },
     {
-      image: "/src/assets/health-workers.png",
+      image: "/images/health-workers.png",
       title: "Join Our Community of Health Workers",
       description: "Connect with professionals and access specialized training materials.",
       buttonText: "Start Learning"
