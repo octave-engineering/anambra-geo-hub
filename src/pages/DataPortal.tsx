@@ -1,58 +1,23 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Search, Filter, Info, Database, ArrowLeft } from "lucide-react";
-import { healthDatasets, getDatasetsByCategory, getDatasetsByAccessLevel, getDatasetById, getDatasetsByPortal, getUniquePortals, groupDatasetsByPortal } from "@/data/datasets";
+import { Input } from "@/components/ui/input";
+import { Download, Search, Database, Info } from "lucide-react";
+import { healthDatasets } from "@/data/datasets";
 import { toast } from "@/hooks/use-toast";
 
 const DataPortal = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPortal, setSelectedPortal] = useState<string>("all");
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
-  const [selectedAccessLevel, setSelectedAccessLevel] = useState<string>("all");
-  const [userAccessLevel] = useState<'public' | 'restricted' | 'admin'>('public');
   const [selectedDataset, setSelectedDataset] = useState<any | null>(null);
 
-  // Filter datasets based on user access level
-  const accessibleDatasets = healthDatasets.filter(dataset => {
-    if (userAccessLevel === 'admin') return true;
-    if (userAccessLevel === 'restricted') return dataset.accessLevel !== 'admin';
-    return dataset.accessLevel === 'public';
+  // Filter datasets based on search term
+  const filteredDatasets = healthDatasets.filter(dataset => {
+    return dataset.dataset.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           dataset.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (dataset.source && dataset.source.toLowerCase().includes(searchTerm.toLowerCase())) ||
+           dataset.subcategory.toLowerCase().includes(searchTerm.toLowerCase());
   });
-
-  // Apply search and filters
-  const filteredDatasets = accessibleDatasets.filter(dataset => {
-    const matchesSearch = dataset.dataset.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dataset.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (dataset.source && dataset.source.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         dataset.subcategory.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesPortal = selectedPortal === "all" || dataset.portal === selectedPortal;
-    const matchesSubcategory = selectedSubcategory === "all" || dataset.subcategory === selectedSubcategory;
-    const matchesAccess = selectedAccessLevel === "all" || dataset.accessLevel === selectedAccessLevel;
-
-    return matchesSearch && matchesPortal && matchesSubcategory && matchesAccess;
-  });
-
-  // Get unique portals and subcategories for filters
-  const uniquePortals = getUniquePortals();
-  const accessLevels = ['public', 'restricted', 'admin'];
-
-  // Group datasets by portal for display
-  const datasetsByPortal = selectedPortal === "all"
-    ? groupDatasetsByPortal()
-    : {
-        [selectedPortal]: Object.fromEntries(
-          Object.entries(groupDatasetsByPortal()[selectedPortal] || {}).map(([subcategory, datasets]) => [
-            subcategory,
-            datasets.filter(d => d.subcategory === subcategory && filteredDatasets.includes(d))
-          ])
-        )
-      };
 
   const handleDownload = (dataset: any) => {
     // Simulate download with toast notification
@@ -63,10 +28,6 @@ const DataPortal = () => {
 
     // In a real app, this would trigger the actual download
     console.log(`Downloading: ${dataset.downloadUrl}`);
-  };
-
-  const handleMoreInfo = (dataset: any) => {
-    setSelectedDataset(dataset);
   };
 
   return (
@@ -88,7 +49,7 @@ const DataPortal = () => {
             </div>
           </div>
 
-{/* Dataset Categories */}
+          {/* Dataset Categories */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <Card className="border-l-4 border-l-[#ffaa00]">
               <CardHeader className="pb-3">
@@ -138,192 +99,91 @@ const DataPortal = () => {
               </CardHeader>
             </Card>
           </div>
+          
         </div>
 
-        {/* Search and Filters */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Filter className="h-5 w-5 text-primary" />
-              <span>Search & Filter Datasets</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search datasets..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              <Select value={selectedPortal} onValueChange={setSelectedPortal}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Portals" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Portals</SelectItem>
-                  {uniquePortals.map(portal => (
-                    <SelectItem key={portal} value={portal}>{portal}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedAccessLevel} onValueChange={setSelectedAccessLevel}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Access Levels" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Access Levels</SelectItem>
-                  {accessLevels.map(level => (
-                    <SelectItem key={level} value={level}>
-                      {level.charAt(0).toUpperCase() + level.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {selectedPortal !== "all" && Object.keys(datasetsByPortal[selectedPortal] || {}).map(subcategory => (
-                    <SelectItem key={subcategory} value={subcategory}>{subcategory}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {/* Search and Datasets */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-inter font-bold text-foreground">
+              Available Datasets
+            </h2>
+            <div className="text-sm text-muted-foreground">
+              {filteredDatasets.length} datasets found
             </div>
+          </div>
+          
+          <div className="relative mb-6 max-w-md">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search datasets..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
 
-            <div className="mt-4 flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                {filteredDatasets.length} datasets found
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedPortal("all");
-                  setSelectedAccessLevel("all");
-                  setSelectedSubcategory("all");
-                }}
-              >
-                Clear Filters
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Dataset Cards by Portal */}
-        {Object.entries(datasetsByPortal).map(([portal, subcategories]) => (
-          Object.keys(subcategories).length > 0 && (
-            <div key={portal} className="mb-12">
-              <div className="flex items-center space-x-3 mb-6">
-                <h2 className="text-2xl font-inter font-bold text-foreground">
-                  {portal}
-                </h2>
-                <Badge variant="outline" className="bg-[#ffaa00]/10 text-[#ffaa00] border-[#ffaa00]/20">
-                  {Object.values(subcategories).flat().length} datasets
-                </Badge>
-              </div>
-
-              {Object.entries(subcategories).map(([subcategory, datasets]) => (
-                datasets.length > 0 && (
-                  <div key={subcategory} className="mb-8">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <h3 className="text-lg font-semibold text-muted-foreground">
-                        {subcategory}
-                      </h3>
-                      <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-200">
-                        {datasets.length} datasets
-                      </Badge>
+          {/* Datasets Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredDatasets.map(dataset => (
+              <Card key={dataset.id} className="hover:shadow-card transition-all duration-200 border hover:border-primary/20">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-2xl">{dataset.logo}</div>
+                      <div>
+                        <CardTitle className="text-lg">{dataset.dataset}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{dataset.owner}</p>
+                      </div>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {datasets.map(dataset => (
-                        <Card key={dataset.id} className="hover:shadow-card transition-all duration-200 border hover:border-primary/20">
-                          <CardHeader>
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-center space-x-3">
-                                <div className="text-2xl">{dataset.logo}</div>
-                                <div>
-                                  <CardTitle className="text-lg">{dataset.dataset}</CardTitle>
-                                  <p className="text-sm text-muted-foreground">{dataset.owner}</p>
-                                </div>
-                              </div>
-                            </div>
-                          </CardHeader>
-
-                          <CardContent className="space-y-4">
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {dataset.description}
-                            </p>
-
-                            <div className="text-xs text-muted-foreground">
-                              Last updated: {new Date(dataset.lastUpdated).toLocaleDateString()}
-                            </div>
-
-                            <div className="flex gap-2 pt-2">
-                              <Button
-                                onClick={() => handleDownload(dataset)}
-                                className="flex-1"
-                                size="sm"
-                              >
-                                <Download className="h-4 w-4 mr-2" />
-                                Download
-                              </Button>
-                              {dataset.koboFormUrl && (
-                                <Button asChild variant="secondary" size="sm" className="flex-1">
-                                  <a href={dataset.koboFormUrl} target="_blank" rel="noreferrer">
-                                    Collect (Kobo)
-                                  </a>
-                                </Button>
-                              )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleMoreInfo(dataset)}
-                                title="More Information"
-                              >
-                                <Info className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={() => setSelectedDataset(dataset)}
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
                   </div>
-                )
-              ))}
-            </div>
-          )
-        ))}
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {dataset.description}
+                  </p>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      onClick={() => handleDownload(dataset)}
+                      className="flex-1"
+                      size="sm"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                    {dataset.koboFormUrl && (
+                      <Button asChild variant="secondary" size="sm" className="flex-1">
+                        <a href={dataset.koboFormUrl} target="_blank" rel="noreferrer">
+                          Collect (Kobo)
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
 
         {/* No Results */}
         {filteredDatasets.length === 0 && (
           <Card className="text-center py-12">
             <CardContent>
               <Database className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No datasets found</h3>
-              <p className="text-muted-foreground mb-4">
-                Try adjusting your search terms or filters
+              <h3 className="text-lg font-medium mb-2">No datasets found</h3>
+              <p className="text-muted-foreground">
+                Try adjusting your search to find what you're looking for.
               </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedPortal("all");
-                  setSelectedAccessLevel("all");
-                  setSelectedSubcategory("all");
-                }}
-              >
-                Clear Filters
-              </Button>
             </CardContent>
           </Card>
         )}
@@ -483,42 +343,6 @@ const DataPortal = () => {
               </div>
             </div>
 
-            {/* Access Level Guide */}
-            <div>
-              <h4 className="font-semibold text-lg mb-4">Access Level Recommendations</h4>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3">
-                  <div className="w-3 h-3 bg-[#ffaa00] rounded-full mt-1"></div>
-                  <div className="flex-1">
-                    <div className="font-medium text-[#ffaa00]">Public Access (Recommended for beginners)</div>
-                    <div className="text-sm text-muted-foreground">
-                      Start with these datasets for research, analysis, and basic mapping. No special permissions required.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="w-3 h-3 bg-[#ffaa00]/70 rounded-full mt-1"></div>
-                  <div className="flex-1">
-                    <div className="font-medium text-[#ffaa00]/80">Restricted Access (For authorized users)</div>
-                    <div className="text-sm text-muted-foreground">
-                      Access sensitive health data with proper credentials. Contains detailed surveillance and laboratory data.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="w-3 h-3 bg-[#ffaa00]/50 rounded-full mt-1"></div>
-                  <div className="flex-1">
-                    <div className="font-medium text-[#ffaa00]/70">Admin Access (Limited datasets)</div>
-                    <div className="text-sm text-muted-foreground">
-                      Internal administrative data including HR registries and drug stock information. Requires high-level permissions.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Data Portal Comparison */}
             <div>
               <h4 className="font-semibold text-lg mb-4">Data Portal Characteristics</h4>
@@ -596,16 +420,6 @@ const DataPortal = () => {
                           <div><strong>Owner:</strong> {selectedDataset.owner}</div>
                           <div><strong>Format:</strong> {selectedDataset.format}</div>
                           <div><strong>Size:</strong> {selectedDataset.size}</div>
-                          <div><strong>Last Updated:</strong> {new Date(selectedDataset.lastUpdated).toLocaleDateString()}</div>
-                          <div><strong>Access Level:</strong>
-                            <span className={`ml-1 px-2 py-1 rounded-full text-xs ${
-                              selectedDataset.accessLevel === 'public' ? 'bg-[#ffaa00]/20 text-[#ffaa00]' :
-                              selectedDataset.accessLevel === 'restricted' ? 'bg-[#ffaa00]/30 text-[#ffaa00]/80' :
-                              'bg-[#ffaa00]/40 text-[#ffaa00]/70'
-                            }`}>
-                              {selectedDataset.accessLevel}
-                            </span>
-                          </div>
                         </div>
                       </div>
 
@@ -667,9 +481,142 @@ const DataPortal = () => {
             </Card>
           </div>
         )}
+
+        {/* Dataset Comparison Section */}
+        <div className="mt-12">
+          <Card className="border-l-4 border-l-[#ffaa00]">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center">
+                <span className="text-[#ffaa00] mr-2">🔍</span>
+                Dataset Comparison Guide
+              </CardTitle>
+              <CardDescription>
+                Understand the differences between similar datasets to choose the right one for your needs
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Disease Surveillance Datasets */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-3">Disease Surveillance</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card className="bg-[#ffaa00]/5 border-[#ffaa00]/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Malaria Cases (DHIS2)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <p><span className="font-medium">Strengths:</span> Monthly updates, facility-level granularity</p>
+                      <p><span className="font-medium">Limitations:</span> Only includes public health facilities</p>
+                      <p><span className="font-medium">Best for:</span> Real-time monitoring and response</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-[#ffaa00]/5 border-[#ffaa00]/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Malaria Prevalence (NMEP)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <p><span className="font-medium">Strengths:</span> Community-level data, includes testing results</p>
+                      <p><span className="font-medium">Limitations:</span> Annual updates, sample-based</p>
+                      <p><span className="font-medium">Best for:</span> Annual planning and impact assessment</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Health Facility Datasets */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-3">Health Facility Data</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card className="bg-[#ffaa00]/5 border-[#ffaa00]/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Facility Registry (DHIS2)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <p><span className="font-medium">Coverage:</span> All public health facilities</p>
+                      <p><span className="font-medium">Update Frequency:</span> Monthly</p>
+                      <p><span className="font-medium">Includes:</span> Services, staffing, equipment</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-[#ffaa00]/5 border-[#ffaa00]/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Private Facilities (HFR)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <p><span className="font-medium">Coverage:</span> Selected private facilities</p>
+                      <p><span className="font-medium">Update Frequency:</span> Quarterly</p>
+                      <p><span className="font-medium">Includes:</span> Basic service availability</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Population Data */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-3">Population Data</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card className="bg-[#ffaa00]/5 border-[#ffaa00]/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Census Data</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <p><span className="font-medium">Resolution:</span> LGA level</p>
+                      <p><span className="font-medium">Update:</span> Every 10 years</p>
+                      <p><span className="font-medium">Best for:</span> Official population counts</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-[#ffaa00]/5 border-[#ffaa00]/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">GRID3</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <p><span className="font-medium">Resolution:</span> 100m grid cells</p>
+                      <p><span className="font-medium">Update:</span> Annual estimates</p>
+                      <p><span className="font-medium">Best for:</span> Spatial analysis</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-[#ffaa00]/5 border-[#ffaa00]/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">NMIS</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <p><span className="font-medium">Coverage:</span> Facility catchments</p>
+                      <p><span className="font-medium">Update:</span> Annual</p>
+                      <p><span className="font-medium">Best for:</span> Health planning</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+              
+              <div className="bg-[#ffaa00]/10 p-4 rounded-lg">
+                <h4 className="font-semibold text-foreground mb-2">How to Choose the Right Dataset</h4>
+                <ul className="space-y-2 text-sm text-foreground/90">
+                  <li className="flex items-start">
+                    <span className="text-[#ffaa00] mr-2">•</span>
+                    <span><strong>For real-time data:</strong> Use DHIS2 datasets with monthly updates</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#ffaa00] mr-2">•</span>
+                    <span><strong>For spatial analysis:</strong> Use GRID3 population data with health facility locations</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#ffaa00] mr-2">•</span>
+                    <span><strong>For comprehensive coverage:</strong> Combine multiple data sources (e.g., DHIS2 + HFR)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-[#ffaa00] mr-2">•</span>
+                    <span><strong>For historical trends:</strong> Use datasets with longer time series</span>
+                  </li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
-};
+}
 
 export default DataPortal;

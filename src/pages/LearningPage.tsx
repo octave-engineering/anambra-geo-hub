@@ -729,8 +729,17 @@ const LearningPage = () => {
                           </div>
                         </div>
                       </div>
-                      <CardContent className="p-4">
+                      <CardContent className="p-4 space-y-2">
                         <h3 className="font-semibold text-lg line-clamp-2">{tutorial.title}</h3>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                          <span>{tutorial.duration}</span>
+                          <span>{tutorial.views} views</span>
+                        </div>
+                        {tutorial.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-3">
+                            {tutorial.description}
+                          </p>
+                        )}
                       </CardContent>
                     </a>
                   </Card>
@@ -778,46 +787,6 @@ const LearningPage = () => {
                       <div className="bg-accent/50 rounded-lg p-4">
                         <h4 className="font-semibold text-foreground mb-2">Example Use Case</h4>
                         <p className="text-sm text-muted-foreground">{tool.useCase}</p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold text-foreground mb-3">Download Links</h4>
-                        <div className="space-y-2">
-                          {tool.downloadLinks.map((link, linkIndex) => (
-                            <Button
-                              key={linkIndex}
-                              asChild
-                              variant="outline"
-                              size="sm"
-                              className="w-full justify-start"
-                            >
-                              <a href={link.url} target="_blank" rel="noopener noreferrer">
-                                <Download className="h-4 w-4 mr-2" />
-                                {link.title} ({link.platform})
-                              </a>
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold text-foreground mb-3">Learning Resources</h4>
-                        <div className="space-y-2">
-                          {tool.learningLinks.map((link, linkIndex) => (
-                            <Button
-                              key={linkIndex}
-                              asChild
-                              variant="outline"
-                              size="sm"
-                              className="w-full justify-start"
-                            >
-                              <a href={link.url} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                {link.title}
-                              </a>
-                            </Button>
-                          ))}
-                        </div>
                       </div>
                     </CardContent>
                   </Card>

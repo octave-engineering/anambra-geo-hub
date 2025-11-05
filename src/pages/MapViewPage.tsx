@@ -1,12 +1,16 @@
-import React, { useMemo, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
+
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Download, Info, Layers, Filter, Search, X, MapPin, ZoomIn, ZoomOut, Globe } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { healthDatasets } from "@/data/datasets";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -14,38 +18,131 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  BarChart3,
-  TrendingUp,
-  Map as MapIcon,
-  Activity,
-  Download,
-  Info,
-  MousePointer,
-  Square,
-} from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
-import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import { healthDatasets, getDatasetsByCategory, getDatasetsByPortal } from "@/data/datasets";
+import dynamic from 'next/dynamic';
 
-import type { Feature, Polygon } from "geojson";
+// Define types for LGA data
+interface LGAData {
+  name: string;
+  coord: [number, number];
+  datasets: number;
+  category: string;
+}
 
-const AnalyticsPage: React.FC = () => {
+// LGA centers for Anambra State with sample data
+const lgaCenters: LGAData[] = [
+  { name: "Aguata", coord: [6.02, 7.08], datasets: 12, category: 'disease' },
+  { name: "Anambra East", coord: [6.20, 6.92], datasets: 8, category: 'facility' },
+  { name: "Anambra West", coord: [6.30, 6.80], datasets: 6, category: 'population' },
+  { name: "Anaocha", coord: [6.10, 7.00], datasets: 10, category: 'disease' },
+  { name: "Awka North", coord: [6.25, 7.10], datasets: 7, category: 'facility' },
+  { name: "Awka South", coord: [6.20, 7.05], datasets: 15, category: 'population' },
+  { name: "Ayamelum", coord: [6.40, 6.90], datasets: 5, category: 'disease' },
+  { name: "Dunukofia", coord: [6.15, 7.00], datasets: 8, category: 'facility' },
+  { name: "Ekwusigo", coord: [6.00, 6.95], datasets: 7, category: 'population' },
+  { name: "Idemili North", coord: [6.10, 6.90], datasets: 9, category: 'disease' },
+  { name: "Idemili South", coord: [6.05, 6.85], datasets: 6, category: 'facility' },
+  { name: "Ihiala", coord: [5.85, 6.90], datasets: 8, category: 'population' },
+  { name: "Njikoka", coord: [6.10, 7.00], datasets: 7, category: 'disease' },
+  { name: "Nnewi North", coord: [6.00, 6.90], datasets: 10, category: 'facility' },
+  { name: "Nnewi South", coord: [5.95, 6.85], datasets: 6, category: 'population' },
+  { name: "Ogbaru", coord: [5.90, 6.80], datasets: 5, category: 'disease' },
+  { name: "Onitsha North", coord: [6.15, 6.80], datasets: 12, category: 'facility' },
+  { name: "Onitsha South", coord: [6.10, 6.75], datasets: 9, category: 'population' },
+  { name: "Orumba North", coord: [6.05, 7.10], datasets: 7, category: 'disease' },
+  { name: "Orumba South", coord: [6.00, 7.05], datasets: 6, category: 'facility' },
+  { name: "Oyi", coord: [6.15, 6.90], datasets: 8, category: 'population' },
+];
+
+// Create a simple square polygon for each LGA
+const createSquarePolygon = (center: [number, number], size = 0.06): [number, number][][] => {
+  const [lat, lng] = center;
+  return [
+    [
+      [lng - size, lat - size],
+      [lng + size, lat - size],
+      [lng + size, lat + size],
+      [lng - size, lat + size],
+      [lng - size, lat - size],
+    ],
+  ];
+};
+
+// Create GeoJSON features for LGAs
+const createGeoJSONFeatures = (lgas: LGAData[]) => {
+  return {
+    type: 'FeatureCollection',
+    features: lgas.map((lga) => ({
+      type: 'Feature',
+      properties: {
+        name: lga.name,
+        datasets: lga.datasets,
+        category: lga.category,
+      },
+      geometry: {
+        type: 'Polygon',
+        coordinates: createSquarePolygon([lga.coord[0], lga.coord[1]]),
+      },
+    })),
+  };
+};
+
+// Get color based on number of datasets
+const getColorByDatasets = (count: number) => {
+  if (count >= 10) return '#1d4ed8'; // blue-700
+  if (count >= 7) return '#3b82f6';  // blue-500
+  if (count >= 5) return '#60a5fa';  // blue-400
+  return '#93c5fd';                  // blue-300
+};
+
+// Get color based on category
+const getColorByCategory = (category: string) => {
+  const colors: Record<string, string> = {
+    disease: '#ef4444',  // red-500
+    facility: '#10b981', // emerald-500
+    population: '#8b5cf6', // violet-500
+  };
+  return colors[category] || '#94a3b8'; // slate-400
+};
+
+// MapViewPage Component
+const MapViewPage = () => {
+  const [selectedLGA, setSelectedLGA] = useState<LGAData | null>(null);
+  const [hoveredLGA, setHoveredLGA] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'datasets' | 'categories'>('datasets');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isClient, setIsClient] = useState(false);
+
+  // Set isClient to true after component mounts (to handle SSR)
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const GeoJSON = dynamic(
+    () => import('react-leaflet').then((mod) => mod.GeoJSON),
+    { ssr: false }
+  );
+
+const useMapEventsHandler = (onClick: (e: any) => void) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    map.on('click', onClick);
+    return () => {
+      map.off('click', onClick);
+    };
+  }, [map, onClick]);
+  
+  return null;
+};
+
+// Define types
+interface LGAData {
+  name: string;
+  coord: [number, number];
+  datasets: number;
+}
+
+const MapViewPage: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("2024");
   const [selectedDatasetType, setSelectedDatasetType] = useState<string>("all");
   const [selectedLGA, setSelectedLGA] = useState<string | null>(null);
@@ -139,7 +236,9 @@ const AnalyticsPage: React.FC = () => {
     },
   ];
 
-  // Demo Anambra GeoJSON
+  /***************
+   * Demo Anambra GeoJSON
+   ***************/
   const lgaCenters = [
     { name: "Aguata", coord: [7.09, 6.03], datasets: getDatasetsByCategory('disease').length + getDatasetsByCategory('facility').length },
     { name: "Anaocha", coord: [6.95, 6.17], datasets: getDatasetsByPortal('DHIS2').length },
@@ -174,7 +273,7 @@ const AnalyticsPage: React.FC = () => {
     ],
   ];
 
-  const anambraGeoJSON = useMemo(() => {
+  const anambraGeoJSON: FeatureCollection<Polygon, any> = useMemo(() => {
     return {
       type: "FeatureCollection",
       features: lgaCenters.map((lga) => ({
@@ -193,7 +292,7 @@ const AnalyticsPage: React.FC = () => {
     };
   }, [selectedDatasetType]);
 
-  const nigeriaGeoJSON = useMemo(() => ({
+  const nigeriaGeoJSON: FeatureCollection<Polygon, { name: string }> = useMemo(() => ({
     type: "FeatureCollection",
     features: [
       {
@@ -216,7 +315,7 @@ const AnalyticsPage: React.FC = () => {
 
   const anambraStyle = (feature: any) => {
     const datasets = feature?.properties?.datasets || 0;
-    const opacity = Math.min(datasets / 10, 1);
+    const opacity = Math.min(datasets / 10, 1); // Scale opacity based on dataset count
     return {
       fillColor: datasets > 5 ? "#ffaa00" : datasets > 2 ? "#ffcc66" : "#ffe6b3",
       color: "#b36e00",
@@ -491,4 +590,7 @@ const AnalyticsPage: React.FC = () => {
   );
 };
 
-export default AnalyticsPage;
+export default MapViewPage;
+
+
+
