@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, MapPin, Database, Upload, Users, Home, Info, BookOpen, BarChart3 } from "lucide-react";
+import { Menu, X, MapPin, Database, Upload, Users, Home, Info, BookOpen, BarChart3, Map } from "lucide-react";
 import anambraLogo from "@/assets/anambra-logo.png";
 
 const Header = () => {
@@ -16,6 +16,7 @@ const Header = () => {
     { name: "Submit Data", href: "/submit", icon: Upload },
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
     { name: "GIS Mapping", href: "/gis-mapping", icon: MapPin },
+    { name: "GIS Map", href: "/gis-map", icon: Map },
     { name: "Tools & Learning", href: "/learning", icon: BookOpen },
   ];
 

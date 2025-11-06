@@ -88,6 +88,7 @@ import LearningPage from "@/pages/LearningPage";
 import DatasetsList from "@/pages/Datasets/DatasetsList";
 import DatasetDetail from "@/pages/Datasets/DatasetDetail";
 import DataPortal from "@/pages/DataPortal";
+import FacilityMapPage from "@/pages/FacilityMapPage";
 
 import PublicDashboard from "@/pages/dashboards/PublicDashboard";
 import PartnerDashboard from "@/pages/dashboards/PartnerDashboard";
@@ -120,6 +121,7 @@ const App = () => {
                 <Route path="/datasets" element={<DatasetsList />} />
                 <Route path="/datasets/:id" element={<DatasetDetail />} />
                 <Route path="/gis-mapping" element={<GisMappingPage />} />
+                <Route path="/gis-map" element={<FacilityMapPage />} />
                 <Route path="/submit" element={<SubmitDataPage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
                 <Route path="/tools" element={<LearningPage />} />
