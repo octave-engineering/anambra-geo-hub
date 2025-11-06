@@ -64,30 +64,30 @@ const TestimonialCarousel = () => {
     {
       id: 1,
       quote: "The Anambra Geospatial Health Platform has transformed how we analyze health data. The ability to visualize multiple data sources in one place is invaluable.",
-      author: "Dr. Ngozi Okonkwo",
-      role: "Health Commissioner",
+      author: "Dr. Chuma",
+      role: "Head of Epidemiology",
       rating: 5
     },
     {
       id: 2,
+      quote: "The Anambra Geospatial Health Platform has made it much easier to manage and access health data across the state.",
+      author: "Miss Judith",
+      role: "Anambra Health Data Manager",
+      rating: 5
+    },
+    {
+      id: 3,
       quote: "As a data analyst, I find the platform's integration of various health indicators extremely useful. It has significantly reduced our data processing time.",
       author: "Emeka Okafor",
       role: "Data Analyst",
       rating: 5
     },
     {
-      id: 3,
+      id: 4,
       quote: "The training provided has empowered our team to better understand and utilize health data for community interventions. The impact has been remarkable.",
       author: "Amina Mohammed",
       role: "Public Health Officer",
       rating: 4
-    },
-    {
-      id: 4,
-      quote: "This platform has revolutionized our community health outreach programs. The geospatial data helps us identify priority areas effectively.",
-      author: "Chidi Nwosu",
-      role: "Community Health Worker",
-      rating: 5
     },
     {
       id: 5,

@@ -17,8 +17,7 @@
 // import LoginPage from "@/pages/LoginPage";
 // import Logout from "@/pages/Logout";
 // import AboutPage from "@/pages/AboutPage";
-// import AnalyticsPage from "@/pages/AnalyticsPage";
-// import SubmitDataPage from "@/pages/SubmitDataPage";
+// // import SubmitDataPage from "@/pages/SubmitDataPage";
 // import ToolsPage from "@/pages/ToolsPage";
 
 // import PublicDashboard from "@/pages/dashboards/PublicDashboard";
@@ -82,7 +81,6 @@ import RepositoryPage from "@/pages/RepositoryPage";
 import LoginPage from "@/pages/LoginPage";
 import Logout from "@/pages/Logout";
 import AboutPage from "@/pages/AboutPage";
-import AnalyticsPage from "@/pages/AnalyticsPage";
 import SubmitDataPage from "@/pages/SubmitDataPage";
 import LearningPage from "@/pages/LearningPage";
 import DatasetsList from "@/pages/Datasets/DatasetsList";
@@ -123,7 +121,6 @@ const App = () => {
                 <Route path="/gis-mapping" element={<GisMappingPage />} />
                 <Route path="/gis-map" element={<FacilityMapPage />} />
                 <Route path="/submit" element={<SubmitDataPage />} />
-                <Route path="/analytics" element={<AnalyticsPage />} />
                 <Route path="/tools" element={<LearningPage />} />
                 <Route path="/learning" element={<LearningPage />} />
                 

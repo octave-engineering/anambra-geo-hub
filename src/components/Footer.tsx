@@ -83,6 +83,13 @@ const Footer = () => {
                 Data Portal
               </Link>
               <Link
+                to="/submit"
+                onClick={handleLinkClick}
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                Submit Data
+              </Link>
+              <Link
                 to="/analytics"
                 onClick={handleLinkClick}
                 className="text-muted-foreground hover:text-primary transition-colors"
@@ -90,18 +97,18 @@ const Footer = () => {
                 Analytics
               </Link>
               <Link
+                to="/gis-mapping"
+                onClick={handleLinkClick}
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                GIS Mapping
+              </Link>
+              <Link
                 to="/learning"
                 onClick={handleLinkClick}
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
-                Learning
-              </Link>
-              <Link
-                to="/submit"
-                onClick={handleLinkClick}
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                Submit Data
+                Tools & Learning
               </Link>
             </nav>
           </div>

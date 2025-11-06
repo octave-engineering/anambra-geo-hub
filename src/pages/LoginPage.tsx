@@ -79,8 +79,8 @@ const Login = () => {
           </div>
 
           <Card className="shadow-strong border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center space-x-2">
                 <LogIn className="w-5 h-5 text-primary" />
                 <span>Login Portal</span>
               </CardTitle>
@@ -155,13 +155,11 @@ const Login = () => {
                 </Button>
 
                 {/* Info */}
-                <div className="text-center text-sm text-muted-foreground">
-                  {accessLevel === "public" ? (
-                    "Public access provides limited dataset access for general exploration"
-                  ) : (
-                    "Contact your system administrator if you need access credentials"
-                  )}
-                </div>
+                {accessLevel !== "public" && (
+                  <div className="text-center text-sm text-muted-foreground">
+                    Contact your system administrator if you need access credentials
+                  </div>
+                )}
 
                 {/* Forgot password and contact */}
                 <div className="mt-2">
