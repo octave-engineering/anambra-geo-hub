@@ -26,6 +26,7 @@ import PublicDashboard from "@/pages/dashboards/PublicDashboard";
 import PartnerDashboard from "@/pages/dashboards/PartnerDashboard";
 import AdminDashboard from "@/pages/dashboards/AdminDashboard";
 import GisMappingPage from "@/pages/GisMappingPage";
+import AnalyticsPage from "@/pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,7 +60,7 @@ const App = () => {
                 <Route path="/learning" element={<LearningPage />} />
                 
                 {/* Dashboard routes */}
-                <Route path="/dashboard/public" element={<PublicDashboard />} />
+                <Route path="/analytics" element={<AnalyticsPage />} />
                 <Route path="/dashboard/partner" element={<PartnerDashboard />} />
                 <Route path="/dashboard/admin" element={<AdminDashboard />} />
                 

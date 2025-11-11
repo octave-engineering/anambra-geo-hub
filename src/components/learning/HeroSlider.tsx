@@ -9,25 +9,27 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 // Import images from the assets directory
-import image1 from "@/assets/IMG_20250828_130600_349.jpg";
-import image2 from "@/assets/health-workers.png";
+import healthMapImage from "@/assets/health-map.jpg";
+import trainingImage from "@/assets/health-training.jpg";
 
 const slides = [
   {
     id: 1,
-    title: "Building Geospatial Capacity in Anambra",
-    subtitle: "Access free training in GIS and geospatial technologies for Anambra State",
-    buttonText: "Explore Programs",
-    link: "#programs",
-    image: image1
+    title: "Anambra Health Intelligence Hub",
+    subtitle: "Transforming healthcare through geospatial data and analytics for better decision making across Anambra State",
+    image: healthMapImage
   },
   {
     id: 2,
-    title: "Master GIS for Public Health",
-    subtitle: "Learn to analyze and visualize health data for better healthcare delivery",
-    buttonText: "View Courses",
-    link: "#courses",
-    image: image2
+    title: "Geospatial Health Training Initiative",
+    subtitle: "Empowering healthcare professionals with spatial analysis skills for improved health outcomes in Anambra",
+    image: trainingImage
+  },
+  {
+    id: 3,
+    title: "Disease Surveillance & Response",
+    subtitle: "Leveraging geospatial technology for real-time disease tracking and rapid response in Anambra communities",
+    image: healthMapImage
   }
 ];
 
@@ -105,18 +107,12 @@ export default function HeroSlider() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
             <div className="relative h-full flex flex-col justify-center items-center text-center px-4 z-10">
               <div className="max-w-4xl mx-auto px-4">
-                <h1 className="text-white text-3xl md:text-5xl font-bold mb-4">
+                <h1 className="text-white text-3xl md:text-5xl font-bold mb-4 tracking-tight">
                   {slide.title}
                 </h1>
-                <p className="text-white/90 text-lg md:text-xl mb-8 max-w-3xl mx-auto">
+                <p className="text-white/90 text-lg md:text-xl mb-4 max-w-3xl mx-auto leading-relaxed font-normal">
                   {slide.subtitle}
                 </p>
-                <a
-                  href={slide.link}
-                  className="inline-block bg-amber-500 hover:bg-amber-600 text-white font-medium px-8 py-3 rounded-full transition-colors duration-300"
-                >
-                  {slide.buttonText}
-                </a>
               </div>
             </div>
           </SwiperSlide>

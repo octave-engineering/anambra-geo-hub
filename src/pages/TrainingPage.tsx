@@ -6,7 +6,7 @@ const TrainingPage = () => {
       <div className="container mx-auto px-4 max-w-5xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-inter font-bold mb-2">GIS Training Modules</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">GIS Training Modules</h1>
           <p className="text-muted-foreground">
             Practical geospatial skills tailored for public health and planning in Anambra State.
           </p>
