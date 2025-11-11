@@ -2,94 +2,213 @@
 
 ## Project Overview
 Anambra GeoHub is a prototype platform designed to catalog, visualize, and analyze health and geospatial datasets for Anambra State.  
-The portal provides **role-based access** for different stakeholders:
-
-- **Public users** → explore maps, dashboards, and selected datasets.  
-- **Partners (NGOs, donors, research bodies)** → access harmonized datasets and visualizations.  
-- **Admin (Anambra State Government)** → manage data, users, and system configuration.  
-
-The system supports CSV, GeoJSON, and Excel datasets, with the ability to download and use them in tools like **QGIS** for deeper analysis.
-
----
 
 ## Features
-- 📊 Interactive dashboards of priority diseases (Malaria, HIV, TB, NTDs, etc.)  
-- 🗺️ Map visualization of health facilities and disease spread across LGAs  
-- 🔐 Role-based login (Admin, Partner, Public)  
-- 📂 Dataset repository with 20+ harmonized sources (DHIS2, GRID3, PHC Registry, NHMIS, etc.)  
-- 📥 CSV/GeoJSON downloads for QGIS/PostGIS integration  
-- 🎨 Modern UI with amber & white theme (Anambra brand colors)  
 
----
+- **Interactive Dashboards**: Real-time health metrics visualization
+- **GIS Mapping**: Geospatial analysis of health facilities and disease patterns  
+- **Data Repository**: Centralized health data management
+- **Multi-source Integration**: DHIS2, GRID3, PHC Registry data
+- **Role-based Access**: Public, Partner, and Admin user levels
+- **API-Driven**: Dynamic data loading from PostgreSQL/PostGIS database
 
-## Technologies Used
-This project is built with:
-- **Vite** - Build tool and development server
-- **TypeScript** - Type-safe JavaScript
-- **React** - UI library
-- **shadcn/ui** - Component library
-- **Tailwind CSS** - Utility-first CSS framework
-- **React Router** - Client-side routing
-- **Leaflet** - Interactive maps
-- **Recharts** - Data visualization
+## Tech Stack
 
----
+**Frontend:**
+- React + TypeScript
+- Vite (build tool)
+- TailwindCSS + shadcn/ui (styling)
+- OpenLayers (mapping)
+- Recharts (charts)
 
-## Development Setup
+**Backend:**
+- Node.js + Express
+- PostgreSQL/PostGIS (database)
+- PM2 (process management)
+- Nginx (reverse proxy)
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd geo-hub
-   ```
+**Cloud Infrastructure:**
+- AWS EC2 (compute)
+- AWS RDS (database)
+- AWS S3 (storage)
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-3. **Start development server**
-   ```bash
-   npm run dev
-   ```
+- Node.js 20+
+- PostgreSQL with PostGIS extension
+- AWS Account (for production deployment)
 
-4. **Build for production**
-   ```bash
-   npm run build
-   ```
+## Quick Start
 
----
+### 1. Clone Repository
 
-## Deployment to GitHub Pages
+```bash
+git clone https://github.com/your-org/anambra-geohub.git
+cd anambra-geohub/application/frontend
+```
 
-This project is configured for automatic deployment to GitHub Pages using GitHub Actions.
+### 2. Install Dependencies
 
-### Automatic Deployment
-1. Push your changes to the `main` or `master` branch
-2. GitHub Actions will automatically build and deploy your site
-3. Your site will be available at: `https://yourusername.github.io/geo-hub/`
+```bash
+npm install
+```
 
-### Manual Deployment
-You can also deploy manually using the gh-pages package:
+### 3. Environment Setup
 
-1. **Install gh-pages** (if not already installed)
-   ```bash
-   npm install --save-dev gh-pages
-   ```
+Create `.env` file:
 
-2. **Deploy to GitHub Pages**
-   ```bash
-   npm run deploy
-   ```
+```env
+# Frontend
+VITE_API_BASE=http://localhost:3001/api
+VITE_GEMINI_API_KEY=your_gemini_api_key
 
-### GitHub Pages Setup
-1. Go to your repository settings on GitHub
-2. Navigate to **Pages** section
-3. Under **Source**, select **GitHub Actions**
-4. The workflow will handle the rest automatically
+# Backend Database
+DB_HOST=your_database_host
+DB_PORT=5432
+DB_NAME=anambra_geohub
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+
+# CORS (development)
+CORS_ORIGIN=http://localhost:5173,http://localhost:3000,http://localhost:8080
+```
+
+### 4. Start Development
+
+```bash
+# Start both frontend and backend
+npm run dev:full
+
+# Or start separately:
+npm run dev      # Frontend only (port 5173)
+npm run server   # Backend only (port 3001)
+```
+
+### 5. Access Application
+
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3001/api/health
+- **Health Metrics**: http://localhost:3001/api/health-metrics/severe_malaria
+
+## Project Structure
+
+```bash
+├── src/                    # Frontend React application
+│   ├── components/         # Reusable UI components
+│   ├── pages/             # Page components and routing
+│   ├── lib/               # Utilities, hooks, and helpers
+│   └── styles/            # Global styles and themes
+├── server/                # Backend Node.js API
+│   ├── config/            # Database and app configuration
+│   ├── controllers/       # Business logic and route handlers
+│   ├── routes/            # API route definitions
+│   └── middleware/        # Express middleware (CORS, errors)
+├── public/                # Static assets and favicon
+├── datasets/              # Sample data files
+└── package.json           # Dependencies and scripts
+```
+
+## API Endpoints
+
+### Health Metrics
+```bash
+GET  /api/health-metrics                    # List available metrics
+GET  /api/health-metrics/:metric            # Get metric data (GeoJSON)
+GET  /api/health-metrics/:metric/filters    # Get filter options (LGAs, wards, periods)
+```
+
+### Facilities
+```bash
+GET  /api/facilities                        # Health facilities (GeoJSON)
+GET  /api/lgas                             # Local Government Areas
+GET  /api/wards                            # Wards by LGA
+GET  /api/stats                            # Facility statistics
+```
+
+### System
+```bash
+GET  /api/health                           # API health check
+POST /api/generate                         # Gemini AI content generation
+```
+
+## Available Health Metrics
+
+- **Severe Malaria Cases** (`severe_malaria`)
+- **Sickle Cell Disease** (`sickle_cell`) 
+- **Breast Cancer Cases** (`breast_cancer`)
+- **Death Cases** (`death_cases`)
+
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start frontend development server |
+| `npm run server` | Start backend API server |
+| `npm run dev:full` | Start both frontend and backend |
+| `npm run build` | Build frontend for production |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint code linting |
+
+## Production Deployment
+
+The application is designed for AWS deployment:
+
+1. **Frontend**: Deploy to Netlify, Vercel, or AWS S3/CloudFront
+2. **Backend**: Deploy to AWS EC2 with PM2 and Nginx
+3. **Database**: AWS RDS PostgreSQL with PostGIS
+
+For detailed deployment instructions, see the deployment documentation.
+
+## Development
+
+### Adding New Health Metrics
+
+1. Add metric configuration to `server/config/metrics.config.mjs`
+2. Create database view following the standard schema
+3. Metric automatically appears in API and frontend
+
+### Database Schema
+
+Health metrics views should include:
+- `facility_id`, `facility_name` 
+- `lga_name`, `parentwardname`
+- `period`, `case_count`
+- `geom` (PostGIS geometry)
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+- **Issues**: GitHub Issues
+- **Documentation**: See `/docs` folder (local development)
+- **API Documentation**: Visit `/api/health` endpoint
+
+## Architecture
+
+```
+Frontend (React) ←→ Backend API (Node.js) ←→ PostgreSQL/PostGIS
+     ↓                    ↓                        ↓
+  Vite/Nginx         PM2/Nginx              AWS RDS
+     ↓                    ↓                        ↓
+ Netlify/S3           AWS EC2              PostGIS Views
+```
+
+--- 
+
+**Built with ❤️ for Anambra State Health System**
 
 ---
 
 ## License
 
-© 2025 Anambra State. All rights reserved.
+This project is licensed under the MIT License - see the LICENSE file for details.

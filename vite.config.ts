@@ -4,8 +4,8 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  // Set base path for GitHub Pages deployment
-  base: process.env.NODE_ENV === 'production' ? '/anambra-geo-hub/' : '/',
+  // Set base path - use '/' for cPanel, or '/anambra-geo-hub/' for GitHub Pages
+  base: '/',
   server: {
     host: "::",
     port: 8080,

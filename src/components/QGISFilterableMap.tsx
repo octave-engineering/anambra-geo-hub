@@ -46,22 +46,36 @@ const QGISFilterableMap = () => {
   const [periods, setPeriods] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Available metrics (QGIS exports)
+  // Available metrics (fetched from API)
   const metrics: MetricConfig[] = [
     {
       id: 'severe_malaria',
       name: 'Severe Malaria Cases',
-      layerFile: '/qgis-maps/qgis_export/layers/vw_severe_malaria_cases_2.js',
+      layerFile: '', // No longer needed - using API only
       description: 'Cases of severe malaria reported by health facilities'
     },
     {
       id: 'sickle_cell',
       name: 'Sickle Cell Cases',
-      layerFile: '/qgis-maps/sickle_cell_export/layers/vw_sickle_cell_disease_2.js',
+      layerFile: '', // No longer needed - using API only
       description: 'Sickle cell disease cases reported by health facilities'
+    },
+    {
+      id: 'breast_cancer',
+      name: 'Breast Cancer Cases',
+      layerFile: '', // No longer needed - using API only
+      description: 'Breast cancer cases reported by health facilities'
+    },
+    {
+      id: 'death_cases',
+      name: 'Death Cases',
+      layerFile: '', // No longer needed - using API only
+      description: 'Death cases reported by health facilities'
     }
-    // Add more metrics here as you export them from QGIS
   ];
+
+  // API Configuration
+  const API_BASE_URL = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:3001';
 
   const currentMetric = metrics.find(m => m.id === filters.metric) || metrics[0];
 
@@ -205,39 +219,42 @@ const QGISFilterableMap = () => {
     loadMetricData();
   }, [filters.metric]);
 
-  // Load metric data from QGIS export
+  // Load metric data from API
   const loadMetricData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(currentMetric.layerFile);
-      const text = await response.text();
+      const apiUrl = `${API_BASE_URL}/api/health-metrics/${filters.metric}`;
+      console.log('Fetching from API:', apiUrl);
       
-      // Extract JSON - the file format is: var json_layername = {...}
-      // Match everything after the = sign
-      const jsonMatch = text.match(/var\s+json_[^\s]+\s*=\s*(\{.+\});?$/);
+      const response = await fetch(apiUrl);
       
-      if (jsonMatch) {
-        const geojson = JSON.parse(jsonMatch[1]);
-        const features = new GeoJSON().readFeatures(geojson, {
-          featureProjection: 'EPSG:3857'
-        });
-        
-        allFeaturesRef.current = features;
-        
-        // Extract unique values for filters
-        const uniqueLgas = [...new Set(features.map((f: any) => f.get('lga_name')).filter(Boolean))].sort();
-        const uniquePeriods = [...new Set(features.map((f: any) => f.get('period')).filter(Boolean))].sort();
-        
-        setLgas(uniqueLgas as string[]);
-        setPeriods(uniquePeriods as string[]);
-        
-        // Apply initial filter
-        applyFilters(features);
-      } else {
-        console.error('Could not extract GeoJSON from file');
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
+      
+      const geojson = await response.json();
+      console.log('✓ Loaded from API:', geojson.metadata);
+
+      // Process GeoJSON features
+      const features = new GeoJSON().readFeatures(geojson, {
+        featureProjection: 'EPSG:3857'
+      });
+      
+      allFeaturesRef.current = features;
+      
+      // Extract unique values for filters
+      const uniqueLgas = [...new Set(features.map((f: any) => f.get('lga_name')).filter(Boolean))].sort();
+      const uniquePeriods = [...new Set(features.map((f: any) => f.get('period')).filter(Boolean))].sort();
+      
+      setLgas(uniqueLgas as string[]);
+      setPeriods(uniquePeriods as string[]);
+      
+      // Apply initial filter
+      applyFilters(features);
     } catch (error) {
       console.error('Error loading metric data:', error);
+      // Show error message to user
+      alert('Failed to load health metrics data. Please check if the backend server is running.');
     } finally {
       setLoading(false);
     }

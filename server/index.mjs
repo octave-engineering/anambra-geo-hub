@@ -185,6 +185,203 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
+// ============ HEALTH METRICS API ENDPOINTS ============
+
+// Metric configuration mapping
+const HEALTH_METRICS = {
+  'severe_malaria': {
+    table: 'dhis_severe_malaria_cases',
+    view: 'vw_severe_malaria_cases',
+    name: 'Severe Malaria Cases',
+    description: 'Cases of severe malaria reported by health facilities'
+  },
+  'sickle_cell': {
+    table: 'dhis_sickle_cell_cases',
+    view: 'vw_sickle_cell_disease',
+    name: 'Sickle Cell Cases',
+    description: 'Sickle cell disease cases reported by health facilities'
+  },
+  'breast_cancer': {
+    table: 'dhis_breast_cancer_cases',
+    view: 'vw_breast_cancer_cases',
+    name: 'Breast Cancer Cases',
+    description: 'Breast cancer cases reported by health facilities'
+  },
+  'death_cases': {
+    table: 'dhis_death_cases',
+    view: 'vw_death_cases',
+    name: 'Death Cases',
+    description: 'Death cases reported by health facilities'
+  }
+};
+
+// Get health metrics data as GeoJSON
+app.get('/api/health-metrics/:metric', async (req, res) => {
+  try {
+    const { metric } = req.params;
+    const { lga, ward, period, limit = 10000 } = req.query;
+
+    // Validate metric
+    if (!HEALTH_METRICS[metric]) {
+      return res.status(400).json({ 
+        error: 'Invalid metric', 
+        available: Object.keys(HEALTH_METRICS) 
+      });
+    }
+
+    const metricConfig = HEALTH_METRICS[metric];
+    
+    // Build query - try view first, fallback to table
+    // Note: Adjust table/view names based on your actual database schema
+    let query = `
+      SELECT 
+        fact_record_id,
+        dataset_uid,
+        dataelement_uid,
+        dataelement_name,
+        period,
+        CAST(case_count AS FLOAT) as case_count,
+        facility_id,
+        facility_name,
+        lga_id,
+        lga_name,
+        lastupdated,
+        facility_name_dim,
+        parentlganame,
+        parentwardname,
+        ST_AsGeoJSON(geom)::json as geometry,
+        ST_X(geom) as longitude,
+        ST_Y(geom) as latitude,
+        rn
+      FROM ${metricConfig.view}
+      WHERE geom IS NOT NULL
+    `;
+    
+    const params = [];
+    let paramIndex = 1;
+    
+    // Apply filters
+    if (lga) {
+      params.push(lga);
+      query += ` AND lga_name ILIKE $${paramIndex++}`;
+    }
+    
+    if (ward) {
+      params.push(ward);
+      query += ` AND parentwardname ILIKE $${paramIndex++}`;
+    }
+    
+    if (period) {
+      params.push(period);
+      query += ` AND period = $${paramIndex++}`;
+    }
+    
+    // Add ordering and limit
+    query += ` ORDER BY period DESC, facility_name`;
+    params.push(limit);
+    query += ` LIMIT $${paramIndex++}`;
+    
+    const result = await pool.query(query, params);
+    
+    // Convert to GeoJSON FeatureCollection
+    const geojson = {
+      type: 'FeatureCollection',
+      name: metricConfig.name,
+      crs: {
+        type: 'name',
+        properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' }
+      },
+      metadata: {
+        metric: metric,
+        description: metricConfig.description,
+        count: result.rows.length,
+        filters: { lga, ward, period }
+      },
+      features: result.rows.map(row => ({
+        type: 'Feature',
+        properties: {
+          fact_record_id: row.fact_record_id,
+          dataset_uid: row.dataset_uid,
+          dataelement_uid: row.dataelement_uid,
+          dataelement_name: row.dataelement_name,
+          period: row.period,
+          case_count: row.case_count,
+          facility_id: row.facility_id,
+          facility_name: row.facility_name,
+          lga_id: row.lga_id,
+          lga_name: row.lga_name,
+          lastupdated: row.lastupdated,
+          facility_name_dim: row.facility_name_dim,
+          parentlganame: row.parentlganame,
+          parentwardname: row.parentwardname,
+          longitude: row.longitude,
+          latitude: row.latitude,
+          rn: row.rn
+        },
+        geometry: row.geometry
+      }))
+    };
+    
+    res.json(geojson);
+  } catch (error) {
+    console.error('Error fetching health metrics:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch health metrics', 
+      details: error.message 
+    });
+  }
+});
+
+// Get available metrics
+app.get('/api/health-metrics', async (req, res) => {
+  res.json({
+    metrics: Object.entries(HEALTH_METRICS).map(([id, config]) => ({
+      id,
+      name: config.name,
+      description: config.description
+    }))
+  });
+});
+
+// Get unique filter values for a metric
+app.get('/api/health-metrics/:metric/filters', async (req, res) => {
+  try {
+    const { metric } = req.params;
+    
+    if (!HEALTH_METRICS[metric]) {
+      return res.status(400).json({ 
+        error: 'Invalid metric', 
+        available: Object.keys(HEALTH_METRICS) 
+      });
+    }
+    
+    const metricConfig = HEALTH_METRICS[metric];
+    
+    const query = `
+      SELECT 
+        array_agg(DISTINCT lga_name ORDER BY lga_name) FILTER (WHERE lga_name IS NOT NULL) as lgas,
+        array_agg(DISTINCT parentwardname ORDER BY parentwardname) FILTER (WHERE parentwardname IS NOT NULL) as wards,
+        array_agg(DISTINCT period ORDER BY period DESC) FILTER (WHERE period IS NOT NULL) as periods
+      FROM ${metricConfig.view}
+    `;
+    
+    const result = await pool.query(query);
+    
+    res.json({
+      metric,
+      lgas: result.rows[0].lgas || [],
+      wards: result.rows[0].wards || [],
+      periods: result.rows[0].periods || []
+    });
+  } catch (error) {
+    console.error('Error fetching filters:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch filter options', 
+      details: error.message 
+    });
+  }
+});
+
 // ============ GEMINI API ENDPOINTS ============
 
 // Health check
