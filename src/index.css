@@ -5,8 +5,10 @@
 @tailwind utilities;
 
 @layer base {
-  html {
+  html, body, input, textarea, button, select, a, p, span, div, h1, h2, h3, h4, h5, h6 {
     font-family: 'Work Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -124,11 +126,12 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Work Sans', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
   }
 }
 

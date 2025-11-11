@@ -8,7 +8,7 @@ const ToolsPage = () => {
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-inter font-bold mb-2">Geospatial Tools</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Geospatial Tools</h1>
           <p className="text-muted-foreground">
             Curated tools for collecting, managing, and analyzing geospatial health data in Anambra State.
           </p>
@@ -116,7 +116,7 @@ const ToolsPage = () => {
 
         {/* Demo Visualization */}
         <div className="mt-10">
-          <h2 className="text-2xl font-inter font-bold mb-3">Demo Visualization</h2>
+          <h2 className="text-2xl font-bold mb-3">Demo Visualization</h2>
           <p className="text-sm text-muted-foreground mb-4">
             Explore demo data for Anambra’s 21 LGAs. Choose a disease metric and optionally show PHC locations.
           </p>

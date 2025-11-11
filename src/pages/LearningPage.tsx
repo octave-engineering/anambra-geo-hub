@@ -55,15 +55,15 @@ const LearningPage = () => {
   const heroSlides = [
     {
       image: "/images/IMG_20250828_130600_349.jpg",
-      title: "Empowering Communities Through Geospatial Education",
-      description: "Access free learning resources to enhance your geospatial skills and knowledge.",
-      buttonText: "Start Learning"
+      title: "Empowering Anambra Through Geospatial Learning",
+      description: "Enhance your geospatial expertise with our comprehensive learning resources and training programs.",
+      buttonText: "Explore Resources"
     },
     {
       image: "/images/health-workers.png",
-      title: "Join Our Community of Health Workers",
-      description: "Connect with professionals and access specialized training materials.",
-      buttonText: "Start Learning"
+      title: "Anambra Geospatial Learning Hub",
+      description: "Building capacity in geospatial technology for sustainable development across Anambra State.",
+      buttonText: "Join Our Community"
     }
   ];
 
