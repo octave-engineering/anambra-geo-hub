@@ -225,8 +225,14 @@ const QGISFilterableMap = () => {
     try {
       const apiUrl = `${API_BASE_URL}/api/health-metrics/${filters.metric}`;
       console.log('Fetching from API:', apiUrl);
-      
-      const response = await fetch(apiUrl);
+      // Build optional auth headers
+      const headers: Record<string, string> = {};
+      const API_KEY = import.meta.env.VITE_API_KEY as string | undefined;
+      const AUTH_TOKEN = import.meta.env.VITE_AUTH_TOKEN as string | undefined;
+      if (API_KEY) headers['x-api-key'] = API_KEY;
+      if (AUTH_TOKEN) headers['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+
+      const response = await fetch(apiUrl, { headers });
       
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
@@ -254,7 +260,7 @@ const QGISFilterableMap = () => {
     } catch (error) {
       console.error('Error loading metric data:', error);
       // Show error message to user
-      alert('Failed to load health metrics data. Please check if the backend server is running.');
+      alert('Failed to load health metrics data. Please check if the backend server is running and authorization is configured.');
     } finally {
       setLoading(false);
     }
