@@ -50,7 +50,7 @@ const QGISMapIntegrated = () => {
   const [stats, setStats] = useState({ total_facilities: 0, facilities_with_coords: 0 });
   const [viewMode, setViewMode] = useState<'openlayers' | 'qgis'>('openlayers');
 
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001/api';
+  const API_BASE = import.meta.env.VITE_API_BASE 
 
   // Fetch LGAs
   useEffect(() => {

@@ -76,8 +76,11 @@ const QGISFilterableMap = () => {
     }
   ];
 
-  // API Configuration
-  const API_BASE_URL = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:3001';
+  // API Configuration - Use the full URL including /api
+  const API_BASE_URL = import.meta.env.VITE_API_BASE || 'https://api.anamgeohub.octaveanalytics.com/api';
+  
+  console.log('🔍 DEBUG - VITE_API_BASE:', import.meta.env.VITE_API_BASE);
+  console.log('🔍 DEBUG - API_BASE_URL:', API_BASE_URL);
 
   const currentMetric = metrics.find(m => m.id === filters.metric) || metrics[0];
 
@@ -227,7 +230,8 @@ const QGISFilterableMap = () => {
   const loadMetricData = async () => {
     setLoading(true);
     try {
-      const apiUrl = `${API_BASE_URL}/api/health-metrics/${filters.metric}`;
+      const apiUrl = `${API_BASE_URL}/health-metrics/${filters.metric}`;
+      console.log('🔍 DEBUG - Full API URL:', apiUrl);
       
       const response = await authenticatedFetch(apiUrl);
       

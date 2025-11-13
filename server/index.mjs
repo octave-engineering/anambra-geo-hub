@@ -9,7 +9,21 @@ const { Pool } = pg;
 const PORT = process.env.PORT || 3001;
 const app = express();
 app.use(express.json({ limit: '10mb' }));
-app.use(cors());
+
+// CORS configuration for production
+const corsOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8080'];
+
+app.use(cors({
+  origin: corsOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'x-api-key'],
+  exposedHeaders: ['Content-Length', 'X-Total-Count'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
 
 // PostgreSQL connection pool
 const pool = new Pool({

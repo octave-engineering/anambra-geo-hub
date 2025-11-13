@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001/api';
+  const API_BASE = import.meta.env.VITE_API_BASE
 
   // Initialize auth state from localStorage
   useEffect(() => {
