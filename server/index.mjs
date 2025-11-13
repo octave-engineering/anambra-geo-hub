@@ -273,8 +273,7 @@ app.get('/api/health-metrics/:metric', async (req, res) => {
         parentwardname,
         ST_AsGeoJSON(geom)::json as geometry,
         ST_X(geom) as longitude,
-        ST_Y(geom) as latitude,
-        rn
+        ST_Y(geom) as latitude
       FROM ${metricConfig.view}
       WHERE geom IS NOT NULL
     `;
@@ -337,8 +336,7 @@ app.get('/api/health-metrics/:metric', async (req, res) => {
           parentlganame: row.parentlganame,
           parentwardname: row.parentwardname,
           longitude: row.longitude,
-          latitude: row.latitude,
-          rn: row.rn
+          latitude: row.latitude
         },
         geometry: row.geometry
       }))
