@@ -11,9 +11,17 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 
 // CORS configuration for production
-const corsOrigins = process.env.CORS_ORIGIN 
-  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8080'];
+// Parse CORS origins - handle wildcard properly
+let corsOrigins;
+if (process.env.CORS_ORIGIN === '*') {
+  corsOrigins = '*';
+} else if (process.env.CORS_ORIGIN) {
+  corsOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+} else {
+  corsOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8080'];
+}
+
+console.log('🔧 CORS Origins:', corsOrigins);
 
 app.use(cors({
   origin: corsOrigins,
