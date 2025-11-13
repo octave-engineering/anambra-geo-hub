@@ -88,10 +88,10 @@ export const getFacilities = async (req, res, next) => {
 export const getLGAs = async (req, res, next) => {
   try {
     const result = await pool.query(`
-      SELECT DISTINCT lga_id, lga_name 
-      FROM phc_facility 
-      WHERE lga_name IS NOT NULL 
-      ORDER BY lga_name
+      SELECT id AS lga_id, shortname AS lga_name
+      FROM dim_lga
+      WHERE shortname IS NOT NULL
+      ORDER BY shortname
     `);
     res.json(result.rows);
   } catch (error) {

@@ -2,12 +2,34 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, MapPin, Database, Upload, Users, Home, Info, BookOpen, BarChart3, Map } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Menu, X, MapPin, Database, Upload, Users, Home, Info, BookOpen, BarChart3, Map, LogOut, User, Settings } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import anambraLogo from "@/assets/anambra-logo.png";
 
 const Header = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    setIsOpen(false);
+  };
+
+  const getUserInitials = (username: string) => {
+    return username.substring(0, 2).toUpperCase();
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'partner': return 'bg-blue-100 text-blue-800';
+      case 'user': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
@@ -51,30 +73,81 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                  className={`flex items-center justify-center space-x-2 px-2 lg:px-4 py-2 rounded-lg transition-all duration-200 group ${
                     isActive(item.href)
                       ? "bg-primary text-primary-foreground shadow-amber"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`}
+                  title={item.name}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-sm font-medium">{item.name}</span>
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden lg:inline text-sm font-medium">{item.name}</span>
                 </Link>
               );
             })}
-            <Button asChild variant="outline" size="sm" className="ml-4">
-              <Link to="/login">
-                <Users className="h-4 w-4 mr-2" />
-                Login
-              </Link>
-            </Button>
+            {/* User Menu / Login Button */}
+            {isAuthenticated && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="ml-2 lg:ml-4 flex items-center space-x-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="text-xs">
+                        {getUserInitials(user.username)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="hidden lg:flex flex-col items-start">
+                      <span className="text-sm font-medium">{user.username}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${getRoleBadgeColor(user.role)}`}>
+                        {user.role}
+                      </span>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">{user.username}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                      <span className={`text-xs px-2 py-1 rounded-full w-fit ${getRoleBadgeColor(user.role)}`}>
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      </span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center">
+                      <User className="h-4 w-4 mr-2" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button asChild variant="outline" size="sm" className="ml-2 lg:ml-4">
+                <Link to="/login">
+                  <Users className="h-4 w-4 lg:mr-2" />
+                  <span className="hidden lg:inline">Login</span>
+                </Link>
+              </Button>
+            )}
           </nav>
 
           {/* Mobile Navigation */}
@@ -121,12 +194,56 @@ const Header = () => {
                   );
                 })}
                 <div className="pt-4 border-t">
-                  <Button asChild className="w-full">
-                    <Link to="/login" onClick={() => setIsOpen(false)}>
-                      <Users className="h-4 w-4 mr-2" />
-                      Login
-                    </Link>
-                  </Button>
+                  {isAuthenticated && user ? (
+                    <div className="space-y-3">
+                      {/* User Info */}
+                      <div className="flex items-center space-x-3 p-3 bg-secondary/50 rounded-lg">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback>
+                            {getUserInitials(user.username)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{user.username}</p>
+                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                          <span className={`text-xs px-2 py-1 rounded-full ${getRoleBadgeColor(user.role)}`}>
+                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* User Actions */}
+                      <div className="space-y-2">
+                        <Button asChild variant="outline" className="w-full justify-start">
+                          <Link to="/profile" onClick={() => setIsOpen(false)}>
+                            <User className="h-4 w-4 mr-2" />
+                            Profile
+                          </Link>
+                        </Button>
+                        <Button asChild variant="outline" className="w-full justify-start">
+                          <Link to="/settings" onClick={() => setIsOpen(false)}>
+                            <Settings className="h-4 w-4 mr-2" />
+                            Settings
+                          </Link>
+                        </Button>
+                        <Button 
+                          onClick={handleLogout} 
+                          variant="destructive" 
+                          className="w-full justify-start"
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Logout
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button asChild className="w-full">
+                      <Link to="/login" onClick={() => setIsOpen(false)}>
+                        <Users className="h-4 w-4 mr-2" />
+                        Login
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               </nav>
             </SheetContent>

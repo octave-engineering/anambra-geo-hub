@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -13,6 +14,9 @@ import BackToTop from "@/components/BackToTop";
 import HomePage from "@/pages/HomePage";
 import RepositoryPage from "@/pages/RepositoryPage";
 import LoginPage from "@/pages/LoginPage";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import ProfilePage from "@/pages/ProfilePage";
+import SettingsPage from "@/pages/SettingsPage";
 import Logout from "@/pages/Logout";
 import AboutPage from "@/pages/AboutPage";
 import SubmitDataPage from "@/pages/SubmitDataPage";
@@ -38,46 +42,67 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter basename={basename}>
-          <ScrollToTop />
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/dataportal" element={<DataPortal />} />
-                <Route path="/repository" element={<DataPortal />} />
-                <Route path="/datasets" element={<DatasetsList />} />
-                <Route path="/datasets/:id" element={<DatasetDetail />} />
-                <Route path="/gis-mapping" element={<GisMappingPage />} />
-                <Route path="/gis-map" element={<FacilityMapPage />} />
-                <Route path="/submit" element={<SubmitDataPage />} />
-                <Route path="/tools" element={<LearningPage />} />
-                <Route path="/learning" element={<LearningPage />} />
-                
-                {/* Dashboard routes */}
-                <Route path="/analytics" element={<AnalyticsPage />} />
-                <Route path="/dashboard/partner" element={<PartnerDashboard />} />
-                <Route path="/dashboard/admin" element={<AdminDashboard />} />
-                
-                {/* Auth routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/logout" element={<Logout />} />
-                
-                {/* Catch-all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-            <Footer />
-            <ChatBot />
-            <BackToTop />
-          </div>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter basename={basename}>
+            <ScrollToTop />
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/dataportal" element={<DataPortal />} />
+                  <Route path="/repository" element={<DataPortal />} />
+                  <Route path="/datasets" element={<DatasetsList />} />
+                  <Route path="/datasets/:id" element={<DatasetDetail />} />
+                  <Route path="/gis-mapping" element={<GisMappingPage />} />
+                  <Route path="/gis-map" element={<FacilityMapPage />} />
+                  <Route path="/submit" element={<SubmitDataPage />} />
+                  <Route path="/tools" element={<LearningPage />} />
+                  <Route path="/learning" element={<LearningPage />} />
+                  
+                  {/* Dashboard routes */}
+                  <Route path="/analytics" element={<AnalyticsPage />} />
+                  <Route path="/dashboard/public" element={<PublicDashboard />} />
+                  <Route path="/dashboard/partner" element={
+                    <ProtectedRoute requiredRole="partner">
+                      <PartnerDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/admin" element={
+                    <ProtectedRoute requiredRole="admin">
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Auth routes */}
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/logout" element={<Logout />} />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Catch-all route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+              <Footer />
+              <ChatBot />
+              <BackToTop />
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

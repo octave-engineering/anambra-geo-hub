@@ -220,11 +220,10 @@ const AnalyticsPage: React.FC = () => {
 
   const handleDownloadSelectedArea = () => {
     if (selectedArea) {
-      const datasets = healthDatasets.filter(d =>
+      const datasets = healthDatasets.filter((d: any) =>
         d.portal === selectedDatasetType ||
         (selectedDatasetType === 'all' && d.accessLevel === 'public')
       );
-      console.log('Downloading datasets for selected area:', datasets);
       // In a real app, this would trigger actual downloads
     }
   };
@@ -425,8 +424,8 @@ const AnalyticsPage: React.FC = () => {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 <GeoJSON
-                  data={nigeriaGeoJSON}
-                  style={{
+                  data={nigeriaGeoJSON as any}
+                  pathOptions={{
                     fillColor: "#e6e6e6",
                     color: "#bdbdbd",
                     weight: 1,
@@ -434,8 +433,8 @@ const AnalyticsPage: React.FC = () => {
                   }}
                 />
                 <GeoJSON
-                  data={anambraGeoJSON}
-                  style={(feature) => {
+                  data={anambraGeoJSON as any}
+                  pathOptions={(feature: any) => {
                     const datasets = feature?.properties?.datasets || 0;
                     const opacity = Math.min(datasets / 10, 1);
                     return {

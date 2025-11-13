@@ -10,6 +10,7 @@ import { Style, Circle, Fill, Stroke } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
 import Overlay from 'ol/Overlay';
 import Point from 'ol/geom/Point';
+import { useAuthenticatedFetch } from '../hooks/useAuthenticatedFetch';
 import 'ol/ol.css';
 
 interface FilterState {
@@ -30,6 +31,7 @@ interface Ward {
 }
 
 const QGISMapIntegrated = () => {
+  const authenticatedFetch = useAuthenticatedFetch();
   const mapRef = useRef<HTMLDivElement>(null);
   const qgisMapRef = useRef<HTMLIFrameElement>(null);
   const mapInstanceRef = useRef<Map | null>(null);
@@ -48,23 +50,41 @@ const QGISMapIntegrated = () => {
   const [stats, setStats] = useState({ total_facilities: 0, facilities_with_coords: 0 });
   const [viewMode, setViewMode] = useState<'openlayers' | 'qgis'>('openlayers');
 
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001/api';
 
   // Fetch LGAs
   useEffect(() => {
-    fetch(`${API_BASE}/api/lgas`)
-      .then(res => res.json())
-      .then(data => setLgas(data))
-      .catch(err => console.error('Error fetching LGAs:', err));
+    const fetchLGAs = async () => {
+      try {
+        const response = await authenticatedFetch(`${API_BASE}/facilities/lgas`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch LGAs: ${response.status}`);
+        }
+        const data = await response.json();
+        setLgas(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Error fetching LGAs:', err);
+      }
+    };
+    fetchLGAs();
   }, []);
 
   // Fetch wards when LGA changes
   useEffect(() => {
     if (filters.lga) {
-      fetch(`${API_BASE}/api/wards?lga=${encodeURIComponent(filters.lga)}`)
-        .then(res => res.json())
-        .then(data => setWards(data))
-        .catch(err => console.error('Error fetching wards:', err));
+      const fetchWards = async () => {
+        try {
+          const response = await authenticatedFetch(`${API_BASE}/facilities/wards?lga=${encodeURIComponent(filters.lga)}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch wards: ${response.status}`);
+          }
+          const data = await response.json();
+          setWards(Array.isArray(data) ? data : []);
+        } catch (err) {
+          console.error('Error fetching wards:', err);
+        }
+      };
+      fetchWards();
     } else {
       setWards([]);
     }
@@ -72,10 +92,19 @@ const QGISMapIntegrated = () => {
 
   // Fetch stats
   useEffect(() => {
-    fetch(`${API_BASE}/api/stats`)
-      .then(res => res.json())
-      .then(data => setStats(data))
-      .catch(err => console.error('Error fetching stats:', err));
+    const fetchStats = async () => {
+      try {
+        const response = await authenticatedFetch(`${API_BASE}/facilities/stats`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch stats: ${response.status}`);
+        }
+        const data = await response.json();
+        setStats(data);
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+      }
+    };
+    fetchStats();
   }, []);
 
   // Initialize OpenLayers map with QGIS layers + database overlay
@@ -186,7 +215,10 @@ const QGISMapIntegrated = () => {
       if (filters.facilityType) params.append('facility_type', filters.facilityType);
       if (filters.search) params.append('search', filters.search);
 
-      const response = await fetch(`${API_BASE}/api/facilities?${params}`);
+      const response = await authenticatedFetch(`${API_BASE}/facilities?${params}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch facilities: ${response.status}`);
+      }
       const geojson = await response.json();
 
       source.clear();

@@ -4,13 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Shield, Users, Globe, LogIn, MapPin, Building } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Shield, Users, Globe, LogIn, MapPin, Building, Loader2, Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate, Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { getDashboardPath } from "@/utils/roleUtils";
 
 const Login = () => {
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   const [accessLevel, setAccessLevel] = useState("public");
   const [credentials, setCredentials] = useState({ username: "", password: "" });
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    const from = (location.state as any)?.from?.pathname || '/';
+    return <Navigate to={from} replace />;
+  }
 
   const accessLevels = [
     {
@@ -20,6 +35,7 @@ const Login = () => {
       icon: Shield,
       color: "text-destructive",
       requiresAuth: true,
+      dashboardPath: "/dashboard/admin",
     },
     {
       id: "partner",
@@ -28,6 +44,7 @@ const Login = () => {
       icon: Users,
       color: "text-warning",
       requiresAuth: true,
+      dashboardPath: "/dashboard/partner",
     },
     {
       id: "public",
@@ -36,25 +53,53 @@ const Login = () => {
       icon: Globe,
       color: "text-primary",
       requiresAuth: false,
+      dashboardPath: "/dashboard/public",
     },
   ];
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-    // Simple demo login logic
-    if (accessLevel === "public") {
-      navigate("/dashboard/public");
-    } else if (accessLevel === "partner" && credentials.username && credentials.password) {
-      navigate("/dashboard/partner");
-    } else if (accessLevel === "admin" && credentials.username && credentials.password) {
-      navigate("/dashboard/admin");
-    } else {
-      alert("Please enter valid credentials");
+    try {
+      // Public access - no authentication required
+      if (accessLevel === "public") {
+        navigate("/dashboard/public");
+        return;
+      }
+
+      // Authenticated access - validate with backend
+      if (!credentials.username || !credentials.password) {
+        setError("Please enter your username and password");
+        return;
+      }
+
+      const { success, error: loginError } = await login(credentials.username, credentials.password);
+      
+      if (success) {
+        // Navigate based on user's actual role from backend, not selected access level
+        // The backend will return the user's role, and we navigate accordingly
+        navigate("/"); // Let the auth context handle the redirect based on user role
+      } else {
+        setError(loginError || "Login failed");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const selectedLevel = accessLevels.find((level) => level.id === accessLevel);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-8 subtle-gradient">
@@ -87,6 +132,13 @@ const Login = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogin} className="space-y-6">
+                {/* Error Alert */}
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
                 {/* Access Level Selection */}
                 <div className="space-y-4">
                   <Label className="text-base font-medium">Select Access Level</Label>
@@ -126,20 +178,44 @@ const Login = () => {
                         type="text"
                         placeholder="Enter your username"
                         value={credentials.username}
-                        onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+                        onChange={(e) => {
+                          setCredentials({ ...credentials, username: e.target.value });
+                          if (error) setError("");
+                        }}
+                        disabled={isLoading}
                         required
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="password">Password</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={credentials.password}
-                        onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          value={credentials.password}
+                          onChange={(e) => {
+                            setCredentials({ ...credentials, password: e.target.value });
+                            if (error) setError("");
+                          }}
+                          disabled={isLoading}
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                          disabled={isLoading}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -149,9 +225,19 @@ const Login = () => {
                   type="submit"
                   className="w-full hero-gradient text-primary-foreground shadow-medium hover:shadow-strong transition-all duration-300"
                   size="lg"
+                  disabled={isLoading || (selectedLevel?.requiresAuth && (!credentials.username || !credentials.password))}
                 >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  {accessLevel === "public" ? "Continue as Public User" : "Sign In"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="w-4 h-4 mr-2" />
+                      {accessLevel === "public" ? "Continue as Public User" : "Sign In"}
+                    </>
+                  )}
                 </Button>
 
                 {/* Info */}
@@ -190,7 +276,11 @@ const Login = () => {
                 <div className="text-sm text-warning-foreground">
                   <strong>Demo Credentials:</strong>
                   <br />
-                  Username: demo | Password: demo123
+                  <div className="space-y-1 mt-2">
+                    <div><strong>Admin:</strong> admin / arbmana1234</div>
+                    <div><strong>Partner:</strong> partner1 / arbmana1234</div>
+                    <div><strong>Analyst:</strong> analyst / arbmana1234</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -1,9 +1,11 @@
 /**
  * Auth Controller
- * - API Key auth
- * - Username/Password -> JWT
+ * - Database user authentication
+ * - JWT token management
  */
 
+import bcrypt from 'bcrypt';
+import { pool } from '../config/database.config.mjs';
 import { issueToken, isAuthEnabled } from '../middleware/auth.middleware.mjs';
 
 const getApiKeys = () => {
@@ -14,10 +16,40 @@ const getApiKeys = () => {
     .filter(Boolean);
 };
 
-const isValidCredentials = (username, password) => {
-  const u = process.env.AUTH_USERNAME || '';
-  const p = process.env.AUTH_PASSWORD || '';
-  return Boolean(u && p && username === u && password === p);
+const validateUserCredentials = async (username, password) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = $1 AND is_active = true',
+      [username]
+    );
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    const user = result.rows[0];
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    
+    if (!isValidPassword) {
+      return null;
+    }
+    
+    // Update last login
+    await pool.query(
+      'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
+      [user.id]
+    );
+    
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    };
+  } catch (error) {
+    console.error('Database auth error:', error);
+    return null;
+  }
 };
 
 export const login = async (req, res) => {
@@ -34,7 +66,7 @@ export const login = async (req, res) => {
       if (!keys.includes(String(apiKey))) {
         return res.status(401).json({ error: 'Invalid API key' });
       }
-      const token = issueToken({ sub: 'api-key', scope: 'read' });
+      const token = issueToken({ sub: 'api-key', scope: 'read', type: 'api' });
       return res.json({ ok: true, token, type: 'api-key' });
     }
 
@@ -42,18 +74,112 @@ export const login = async (req, res) => {
       return res.status(400).json({ error: 'username and password are required' });
     }
 
-    if (!isValidCredentials(String(username), String(password))) {
+    const user = await validateUserCredentials(String(username), String(password));
+    if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = issueToken({ sub: String(username), scope: 'read' });
-    return res.json({ ok: true, token, type: 'user' });
+    const token = issueToken({ 
+      sub: user.id, 
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      type: 'user'
+    });
+    
+    return res.json({ 
+      ok: true, 
+      token, 
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      },
+      type: 'user' 
+    });
   } catch (err) {
+    console.error('Login error:', err);
     return res.status(500).json({ error: 'Login failed' });
   }
 };
 
 export const me = async (req, res) => {
-  // If request reached here, it's authorized (API key or JWT)
-  return res.json({ ok: true, user: req.user || { sub: 'api-key' } });
+  try {
+    // If request reached here, it's authorized (API key or JWT)
+    const user = req.user || { sub: 'api-key' };
+    
+    // If it's a user JWT, fetch fresh user data
+    if (user.type === 'user' && user.sub) {
+      const result = await pool.query(
+        'SELECT id, username, email, role, is_active, last_login FROM users WHERE id = $1 AND is_active = true',
+        [user.sub]
+      );
+      
+      if (result.rows.length > 0) {
+        const dbUser = result.rows[0];
+        return res.json({ 
+          ok: true, 
+          user: {
+            id: dbUser.id,
+            username: dbUser.username,
+            email: dbUser.email,
+            role: dbUser.role,
+            lastLogin: dbUser.last_login
+          }
+        });
+      }
+    }
+    
+    return res.json({ ok: true, user });
+  } catch (error) {
+    console.error('Me endpoint error:', error);
+    return res.status(500).json({ error: 'Failed to get user info' });
+  }
+};
+
+export const register = async (req, res) => {
+  try {
+    const { username, email, password, role = 'user' } = req.body || {};
+    
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'username, email, and password are required' });
+    }
+    
+    // Check if user exists
+    const existingUser = await pool.query(
+      'SELECT id FROM users WHERE username = $1 OR email = $2',
+      [username, email]
+    );
+    
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({ error: 'User already exists' });
+    }
+    
+    // Hash password
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+    
+    // Insert user
+    const result = await pool.query(
+      'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role',
+      [username, email, passwordHash, role]
+    );
+    
+    const newUser = result.rows[0];
+    
+    return res.status(201).json({ 
+      ok: true, 
+      message: 'User created successfully',
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    return res.status(500).json({ error: 'Registration failed' });
+  }
 };
