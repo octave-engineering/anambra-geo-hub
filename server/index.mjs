@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import pg from 'pg';
+import authRoutes from './routes/auth.routes.mjs';
 
 const { Pool } = pg;
 
@@ -67,6 +68,11 @@ const genAI = apiKey ? new GoogleGenerativeAI(apiKey, { apiVersion }) : null;
 
 // Pick a reasonable default model; allow override via env or request body
 const DEFAULT_MODEL = process.env.GEMINI_MODEL || process.env.VITE_GEMINI_MODEL || 'gemini-1.5-flash-001';
+
+// ============ API ROUTES ============
+
+// Mount auth routes
+app.use('/api/auth', authRoutes);
 
 // ============ DATABASE API ENDPOINTS ============
 
