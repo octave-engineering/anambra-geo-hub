@@ -240,6 +240,41 @@ const HEALTH_METRICS = {
     view: 'vw_death_cases',
     name: 'Death Cases',
     description: 'Death cases reported by health facilities'
+  },
+  'arthritis_suspected': {
+    view: 'vw_arthritis_new_cases_suspected',
+    name: 'Arthritis Cases (Suspected)',
+    description: 'New suspected arthritis cases reported by health facilities'
+  },
+  'deliveries_sba': {
+    view: 'vw_deliveries_sba',
+    name: 'Deliveries with Skilled Birth Attendant',
+    description: 'Deliveries attended by skilled birth attendants'
+  },
+  'elephantiasis': {
+    view: 'vw_elephantiasis_new_cases',
+    name: 'Elephantiasis Cases',
+    description: 'New elephantiasis cases reported by health facilities'
+  },
+  'hepc_tested': {
+    view: 'vw_hepc_tested',
+    name: 'Hepatitis C Tests',
+    description: 'Number of Hepatitis C tests conducted'
+  },
+  'measles_under_5': {
+    view: 'vw_measles_new_cases_under_5',
+    name: 'Measles Cases (Under 5)',
+    description: 'New measles cases in children under 5 years'
+  },
+  'patients_admitted': {
+    view: 'vw_patients_admitted',
+    name: 'Patients Admitted',
+    description: 'Total number of patients admitted to health facilities'
+  },
+  'yellow_fever_vaccination': {
+    view: 'vw_yellow_fever_given',
+    name: 'Yellow Fever Vaccinations',
+    description: 'Yellow fever vaccinations administered'
   }
 };
 

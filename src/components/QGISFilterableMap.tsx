@@ -53,26 +53,68 @@ const QGISFilterableMap = () => {
     {
       id: 'severe_malaria',
       name: 'Severe Malaria Cases',
-      layerFile: '', // No longer needed - using API only
+      layerFile: '',
       description: 'Cases of severe malaria reported by health facilities'
     },
     {
       id: 'sickle_cell',
       name: 'Sickle Cell Cases',
-      layerFile: '', // No longer needed - using API only
+      layerFile: '',
       description: 'Sickle cell disease cases reported by health facilities'
     },
     {
       id: 'breast_cancer',
       name: 'Breast Cancer Cases',
-      layerFile: '', // No longer needed - using API only
+      layerFile: '',
       description: 'Breast cancer cases reported by health facilities'
     },
     {
       id: 'death_cases',
       name: 'Death Cases',
-      layerFile: '', // No longer needed - using API only
+      layerFile: '',
       description: 'Death cases reported by health facilities'
+    },
+    {
+      id: 'arthritis_suspected',
+      name: 'Arthritis Cases (Suspected)',
+      layerFile: '',
+      description: 'New suspected arthritis cases reported by health facilities'
+    },
+    {
+      id: 'deliveries_sba',
+      name: 'Deliveries with Skilled Birth Attendant',
+      layerFile: '',
+      description: 'Deliveries attended by skilled birth attendants'
+    },
+    {
+      id: 'elephantiasis',
+      name: 'Elephantiasis Cases',
+      layerFile: '',
+      description: 'New elephantiasis cases reported by health facilities'
+    },
+    {
+      id: 'hepc_tested',
+      name: 'Hepatitis C Tests',
+      layerFile: '',
+      description: 'Number of Hepatitis C tests conducted'
+    },
+    {
+      id: 'measles_under_5',
+      name: 'Measles Cases (Under 5)',
+      layerFile: '',
+      description: 'New measles cases in children under 5 years'
+    },
+    {
+      id: 'patients_admitted',
+      name: 'Patients Admitted',
+      layerFile: '',
+      description: 'Total number of patients admitted to health facilities'
+    },
+    {
+      id: 'yellow_fever_vaccination',
+      name: 'Yellow Fever Vaccinations',
+      layerFile: '',
+      description: 'Yellow fever vaccinations administered'
     }
   ];
 
