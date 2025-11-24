@@ -322,7 +322,7 @@ app.get('/api/health-metrics/:metric', async (req, res) => {
         ST_Y(v.geom) as latitude
       FROM ${metricConfig.view} v
       LEFT JOIN grid3_processed.population_lga p
-        ON v.lga_id = p.id
+        ON v.lga_name = p.shortname
        AND p.year = (SELECT MAX(year) FROM grid3_processed.population_lga)
       WHERE v.geom IS NOT NULL
     `;

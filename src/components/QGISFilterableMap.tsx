@@ -236,10 +236,22 @@ const QGISFilterableMap = () => {
         const geometry = feature.getGeometry();
         if (geometry instanceof Point) {
           const coords = geometry.getCoordinates();
-          const incidence = feature.get('incidence_per_1000');
-          const population = feature.get('population');
-          const incidenceText = typeof incidence === 'number' ? incidence.toFixed(1) : 'N/A';
-          const populationText = typeof population === 'number' ? population.toLocaleString() : 'N/A';
+          const incidenceRaw = feature.get('incidence_per_1000');
+          const populationRaw = feature.get('population');
+          const incidenceValue =
+            incidenceRaw !== undefined && incidenceRaw !== null
+              ? Number(incidenceRaw)
+              : NaN;
+          const populationValue =
+            populationRaw !== undefined && populationRaw !== null
+              ? Number(populationRaw)
+              : NaN;
+          const incidenceText = !Number.isNaN(incidenceValue)
+            ? incidenceValue.toFixed(1)
+            : 'N/A';
+          const populationText = !Number.isNaN(populationValue)
+            ? populationValue.toLocaleString()
+            : 'N/A';
           overlay.setPosition(coords);
           popupElement.innerHTML = `
             <div class="p-4 bg-white rounded-lg shadow-lg max-w-[90vw] md:max-w-xl relative">
