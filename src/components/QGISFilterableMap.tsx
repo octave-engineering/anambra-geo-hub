@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuthenticatedFetch } from '../hooks/useAuthenticatedFetch';
-import Map from 'ol/Map';
+import OlMap from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
@@ -27,13 +27,29 @@ interface MetricConfig {
   description: string;
 }
 
+interface LgaAggregate {
+  lga: string;
+  totalCases: number;
+  facilities: number;
+}
+
+interface SummaryStats {
+  totalCases: number;
+  totalFacilities: number;
+  totalLgas: number;
+  totalWards: number;
+  topLgas: LgaAggregate[];
+  bottomLgas: LgaAggregate[];
+}
+
 const QGISFilterableMap = () => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<Map | null>(null);
+  const mapInstanceRef = useRef<OlMap | null>(null);
   const overlayRef = useRef<Overlay | null>(null);
   const popupElementRef = useRef<HTMLDivElement | null>(null);
   const dataLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
   const allFeaturesRef = useRef<any[]>([]);
+  const valueModeRef = useRef<'cases' | 'incidence'>('cases');
 
   const [filters, setFilters] = useState<FilterState>({
     lga: '',
@@ -47,6 +63,8 @@ const QGISFilterableMap = () => {
   const [periods, setPeriods] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [summary, setSummary] = useState<SummaryStats | null>(null);
+  const [valueMode, setValueMode] = useState<'cases' | 'incidence'>('cases');
 
   // Available metrics (fetched from API)
   const metrics: MetricConfig[] = [
@@ -121,10 +139,17 @@ const QGISFilterableMap = () => {
   // API Configuration - Use the full URL including /api
   const API_BASE_URL = import.meta.env.VITE_API_BASE || 'https://api.anamgeohub.octaveanalytics.com/api';
   
-  console.log('🔍 DEBUG - VITE_API_BASE:', import.meta.env.VITE_API_BASE);
-  console.log('🔍 DEBUG - API_BASE_URL:', API_BASE_URL);
+  console.log('DEBUG - VITE_API_BASE:', import.meta.env.VITE_API_BASE);
+  console.log('DEBUG - API_BASE_URL:', API_BASE_URL);
 
   const currentMetric = metrics.find(m => m.id === filters.metric) || metrics[0];
+
+  useEffect(() => {
+    valueModeRef.current = valueMode;
+    if (dataLayerRef.current) {
+      dataLayerRef.current.changed();
+    }
+  }, [valueMode]);
 
   // Initialize map
   useEffect(() => {
@@ -155,9 +180,16 @@ const QGISFilterableMap = () => {
     const dataLayer = new VectorLayer({
       source: dataSource,
       style: (feature) => {
-        const caseCount = feature.get('case_count') || 0;
+        const mode = valueModeRef.current;
+        const rawValue = mode === 'incidence'
+          ? feature.get('incidence_per_1000') || 0
+          : feature.get('case_count') || 0;
+        const value = Number(rawValue) || 0;
         // Size based on case count
-        const radius = Math.min(Math.max(caseCount / 10, 5), 20);
+        const radius = Math.min(Math.max(value / 10, 5), 20);
+        const label = value > 0
+          ? (mode === 'incidence' ? value.toFixed(1) : value.toString())
+          : '';
         return new Style({
           image: new Circle({
             radius: radius,
@@ -165,7 +197,7 @@ const QGISFilterableMap = () => {
             stroke: new Stroke({ color: '#8B0000', width: 2 })
           }),
           text: new Text({
-            text: caseCount > 0 ? caseCount.toString() : '',
+            text: label,
             font: '12px sans-serif',
             fill: new Fill({ color: '#fff' }),
             stroke: new Stroke({ color: '#000', width: 2 })
@@ -176,7 +208,7 @@ const QGISFilterableMap = () => {
     });
     dataLayerRef.current = dataLayer;
 
-    const map = new Map({
+    const map = new OlMap({
       target: mapRef.current,
       layers: [baseLayer, boundaryLayer, dataLayer],
       view: new View({
@@ -204,6 +236,10 @@ const QGISFilterableMap = () => {
         const geometry = feature.getGeometry();
         if (geometry instanceof Point) {
           const coords = geometry.getCoordinates();
+          const incidence = feature.get('incidence_per_1000');
+          const population = feature.get('population');
+          const incidenceText = typeof incidence === 'number' ? incidence.toFixed(1) : 'N/A';
+          const populationText = typeof population === 'number' ? population.toLocaleString() : 'N/A';
           overlay.setPosition(coords);
           popupElement.innerHTML = `
             <div class="p-4 bg-white rounded-lg shadow-lg max-w-[90vw] md:max-w-xl relative">
@@ -213,6 +249,8 @@ const QGISFilterableMap = () => {
               <p class="text-sm text-gray-600"><strong>Ward:</strong> ${feature.get('parentwardname') || 'N/A'}</p>
               <p class="text-sm text-gray-600"><strong>Period:</strong> ${feature.get('period') || 'N/A'}</p>
               <p class="text-sm text-red-600 font-bold mt-2"><strong>Cases:</strong> ${feature.get('case_count') || 0}</p>
+              <p class="text-sm text-gray-600"><strong>Incidence (per 1,000):</strong> ${incidenceText}</p>
+              <p class="text-sm text-gray-600"><strong>LGA population:</strong> ${populationText}</p>
             </div>
           `;
           popupElement.style.display = 'block';
@@ -337,6 +375,54 @@ const QGISFilterableMap = () => {
     }
   }, [filters.lga]);
 
+  const computeSummary = (features: any[]): SummaryStats => {
+    let totalCases = 0;
+    const lgaMap = new Map<string, { totalCases: number; facilities: number }>();
+    const wardSet = new Set<string>();
+
+    for (const feature of features) {
+      const lgaName = feature.get('lga_name') || 'Unknown';
+      const wardName = feature.get('parentwardname');
+      const cases = Number(feature.get('case_count') || 0);
+
+      totalCases += cases;
+
+      if (wardName) {
+        wardSet.add(wardName);
+      }
+
+      const existing = lgaMap.get(lgaName) || { totalCases: 0, facilities: 0 };
+      existing.totalCases += cases;
+      existing.facilities += 1;
+      lgaMap.set(lgaName, existing);
+    }
+
+    const aggregates: LgaAggregate[] = Array.from(lgaMap.entries()).map(([lga, value]) => ({
+      lga,
+      totalCases: value.totalCases,
+      facilities: value.facilities,
+    }));
+
+    const nonZeroAggregates = aggregates.filter(a => a.totalCases > 0);
+
+    const topLgas = [...nonZeroAggregates]
+      .sort((a, b) => b.totalCases - a.totalCases)
+      .slice(0, 5);
+
+    const bottomLgas = [...nonZeroAggregates]
+      .sort((a, b) => a.totalCases - b.totalCases)
+      .slice(0, 5);
+
+    return {
+      totalCases,
+      totalFacilities: features.length,
+      totalLgas: aggregates.length,
+      totalWards: wardSet.size,
+      topLgas,
+      bottomLgas,
+    };
+  };
+
   const applyFilters = (features: any[]) => {
     if (!dataLayerRef.current) return;
 
@@ -367,6 +453,8 @@ const QGISFilterableMap = () => {
         });
       }
     }
+
+    setSummary(filtered.length > 0 ? computeSummary(filtered) : null);
   };
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
@@ -410,6 +498,18 @@ const QGISFilterableMap = () => {
             ))}
           </select>
           <p className="text-xs text-gray-500 mt-1">{currentMetric.description}</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Value Type</label>
+          <select
+            value={valueMode}
+            onChange={(e) => setValueMode(e.target.value as 'cases' | 'incidence')}
+            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="cases">Cases</option>
+            <option value="incidence">Incidence per 1,000 (LGA population)</option>
+          </select>
         </div>
 
         {loading && (
@@ -478,6 +578,55 @@ const QGISFilterableMap = () => {
             </div>
           </div>
         </div>
+
+        {summary && (
+          <div className="border-t pt-4 mt-4 space-y-3">
+            <h3 className="font-medium mb-2">Burden Summary</h3>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-gray-500">Total cases</p>
+                <p className="text-base font-semibold">{summary.totalCases.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Facilities</p>
+                <p className="text-base font-semibold">{summary.totalFacilities.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">LGAs</p>
+                <p className="text-base font-semibold">{summary.totalLgas}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Wards</p>
+                <p className="text-base font-semibold">{summary.totalWards}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <p className="font-medium mb-1">Top 5 LGAs</p>
+                <ul className="space-y-1">
+                  {summary.topLgas.map(item => (
+                    <li key={item.lga} className="flex justify-between">
+                      <span className="truncate">{item.lga}</span>
+                      <span className="font-semibold">{item.totalCases}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium mb-1">Bottom 5 LGAs</p>
+                <ul className="space-y-1">
+                  {summary.bottomLgas.map(item => (
+                    <li key={item.lga} className="flex justify-between">
+                      <span className="truncate">{item.lga}</span>
+                      <span className="font-semibold">{item.totalCases}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

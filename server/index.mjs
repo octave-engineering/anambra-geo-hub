@@ -294,29 +294,37 @@ app.get('/api/health-metrics/:metric', async (req, res) => {
 
     const metricConfig = HEALTH_METRICS[metric];
     
-    // Build query - try view first, fallback to table
-    // Note: Adjust table/view names based on your actual database schema
+    // Build query - join health metric view to GRID3 LGA population to compute incidence
     let query = `
       SELECT 
-        fact_record_id,
-        dataset_uid,
-        dataelement_uid,
-        dataelement_name,
-        period,
-        CAST(case_count AS FLOAT) as case_count,
-        facility_id,
-        facility_name,
-        lga_id,
-        lga_name,
-        lastupdated,
-        facility_name_dim,
-        parentlganame,
-        parentwardname,
-        ST_AsGeoJSON(geom)::json as geometry,
-        ST_X(geom) as longitude,
-        ST_Y(geom) as latitude
-      FROM ${metricConfig.view}
-      WHERE geom IS NOT NULL
+        v.fact_record_id,
+        v.dataset_uid,
+        v.dataelement_uid,
+        v.dataelement_name,
+        v.period,
+        CAST(v.case_count AS FLOAT) as case_count,
+        v.facility_id,
+        v.facility_name,
+        v.lga_id,
+        v.lga_name,
+        v.lastupdated,
+        v.facility_name_dim,
+        v.parentlganame,
+        v.parentwardname,
+        p.pop_total AS population,
+        CASE 
+          WHEN p.pop_total IS NOT NULL AND p.pop_total > 0
+          THEN CAST(v.case_count AS FLOAT) * 1000.0 / p.pop_total
+          ELSE NULL
+        END AS incidence_per_1000,
+        ST_AsGeoJSON(v.geom)::json as geometry,
+        ST_X(v.geom) as longitude,
+        ST_Y(v.geom) as latitude
+      FROM ${metricConfig.view} v
+      LEFT JOIN grid3_processed.population_lga p
+        ON v.lga_id = p.id
+       AND p.year = (SELECT MAX(year) FROM grid3_processed.population_lga)
+      WHERE v.geom IS NOT NULL
     `;
     
     const params = [];
@@ -376,6 +384,8 @@ app.get('/api/health-metrics/:metric', async (req, res) => {
           facility_name_dim: row.facility_name_dim,
           parentlganame: row.parentlganame,
           parentwardname: row.parentwardname,
+          population: row.population,
+          incidence_per_1000: row.incidence_per_1000,
           longitude: row.longitude,
           latitude: row.latitude
         },
