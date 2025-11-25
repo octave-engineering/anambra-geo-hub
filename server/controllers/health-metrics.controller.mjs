@@ -45,13 +45,13 @@ export const getHealthMetrics = async (req, res, next) => {
         ST_AsGeoJSON(m.geom)::json as geometry,
         ST_X(m.geom) as longitude,
         ST_Y(m.geom) as latitude,
-        p.population,
+        p.pop_total as population,
         CASE 
-          WHEN p.population > 0 THEN (CAST(m.case_count AS FLOAT) / p.population) * 1000
+          WHEN p.pop_total > 0 THEN (CAST(m.case_count AS FLOAT) / p.pop_total) * 1000
           ELSE NULL
         END as incidence_per_1000
       FROM ${metricConfig.view} m
-      LEFT JOIN grid3_processed.population_lga p ON m.lga_name = p.lga_name
+      LEFT JOIN grid3_processed.population_lga p ON m.lga_name = p.shortname
       WHERE m.geom IS NOT NULL
     `;
     
