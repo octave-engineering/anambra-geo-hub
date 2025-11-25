@@ -18,7 +18,8 @@ const Header = () => {
     setIsOpen(false);
   };
 
-  const getUserInitials = (username: string) => {
+  const getUserInitials = (username: string | undefined) => {
+    if (!username) return 'U';
     return username.substring(0, 2).toUpperCase();
   };
 

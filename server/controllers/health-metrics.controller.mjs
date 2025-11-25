@@ -25,7 +25,7 @@ export const getHealthMetrics = async (req, res, next) => {
 
     const metricConfig = getMetricConfig(metric);
     
-    // Build query with population data joined
+    // Build query with population data joined from GRID3 (latest year, robust LGA name match)
     let query = `
       SELECT 
         m.fact_record_id,
@@ -47,11 +47,14 @@ export const getHealthMetrics = async (req, res, next) => {
         ST_Y(m.geom) as latitude,
         p.pop_total as population,
         CASE 
-          WHEN p.pop_total > 0 THEN (CAST(m.case_count AS FLOAT) / p.pop_total) * 1000
+          WHEN p.pop_total IS NOT NULL AND p.pop_total > 0 
+          THEN (CAST(m.case_count AS FLOAT) / p.pop_total) * 1000
           ELSE NULL
         END as incidence_per_1000
       FROM ${metricConfig.view} m
-      LEFT JOIN grid3_processed.population_lga p ON m.lga_name = p.shortname
+      LEFT JOIN grid3_processed.population_lga p
+        ON LOWER(TRIM(m.lga_name)) = LOWER(TRIM(p.shortname))
+       AND p.year = (SELECT MAX(year) FROM grid3_processed.population_lga)
       WHERE m.geom IS NOT NULL
     `;
     
