@@ -4,6 +4,7 @@ import cors from 'cors';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import pg from 'pg';
 import authRoutes from './routes/auth.routes.mjs';
+import grid3Routes from './routes/grid3.routes.mjs';
 
 const { Pool } = pg;
 
@@ -73,6 +74,9 @@ const DEFAULT_MODEL = process.env.GEMINI_MODEL || process.env.VITE_GEMINI_MODEL 
 
 // Mount auth routes
 app.use('/api/auth', authRoutes);
+
+// Mount GRID3 routes
+app.use('/api/grid3', grid3Routes);
 
 // ============ DATABASE API ENDPOINTS ============
 
@@ -296,35 +300,62 @@ app.get('/api/health-metrics/:metric', async (req, res) => {
     
     // Build query - join health metric view to GRID3 LGA population to compute incidence
     let query = `
+      WITH v_agg AS (
+        SELECT
+          MIN(v.fact_record_id) AS fact_record_id,
+          MIN(v.dataset_uid) AS dataset_uid,
+          MIN(v.dataelement_uid) AS dataelement_uid,
+          MIN(v.dataelement_name) AS dataelement_name,
+          v.period,
+          SUM(CAST(v.case_count AS FLOAT)) AS case_count,
+          v.facility_id,
+          v.facility_name,
+          v.lga_id,
+          v.lga_name,
+          MIN(v.lastupdated) AS lastupdated,
+          MIN(v.facility_name_dim) AS facility_name_dim,
+          v.parentlganame,
+          v.parentwardname,
+          MIN(v.geom) AS geom
+        FROM ${metricConfig.view} v
+        GROUP BY
+          v.facility_id,
+          v.facility_name,
+          v.lga_id,
+          v.lga_name,
+          v.parentlganame,
+          v.parentwardname,
+          v.period
+      )
       SELECT 
-        v.fact_record_id,
-        v.dataset_uid,
-        v.dataelement_uid,
-        v.dataelement_name,
-        v.period,
-        CAST(v.case_count AS FLOAT) as case_count,
-        v.facility_id,
-        v.facility_name,
-        v.lga_id,
-        v.lga_name,
-        v.lastupdated,
-        v.facility_name_dim,
-        v.parentlganame,
-        v.parentwardname,
+        v_agg.fact_record_id,
+        v_agg.dataset_uid,
+        v_agg.dataelement_uid,
+        v_agg.dataelement_name,
+        v_agg.period,
+        v_agg.case_count,
+        v_agg.facility_id,
+        v_agg.facility_name,
+        v_agg.lga_id,
+        v_agg.lga_name,
+        v_agg.lastupdated,
+        v_agg.facility_name_dim,
+        v_agg.parentlganame,
+        v_agg.parentwardname,
         p.pop_total AS population,
         CASE 
           WHEN p.pop_total IS NOT NULL AND p.pop_total > 0
-          THEN CAST(v.case_count AS FLOAT) * 1000.0 / p.pop_total
+          THEN v_agg.case_count * 1000.0 / p.pop_total
           ELSE NULL
         END AS incidence_per_1000,
-        ST_AsGeoJSON(v.geom)::json as geometry,
-        ST_X(v.geom) as longitude,
-        ST_Y(v.geom) as latitude
-      FROM ${metricConfig.view} v
+        ST_AsGeoJSON(v_agg.geom)::json as geometry,
+        ST_X(v_agg.geom) as longitude,
+        ST_Y(v_agg.geom) as latitude
+      FROM v_agg
       LEFT JOIN grid3_processed.population_lga p
-        ON v.lga_name = p.shortname
+        ON v_agg.lga_name = p.shortname
        AND p.year = (SELECT MAX(year) FROM grid3_processed.population_lga)
-      WHERE v.geom IS NOT NULL
+      WHERE v_agg.geom IS NOT NULL
     `;
     
     const params = [];

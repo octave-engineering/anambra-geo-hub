@@ -141,12 +141,19 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild variant="outline" size="sm" className="ml-2 lg:ml-4">
-                <Link to="/login">
-                  <Users className="h-4 w-4 lg:mr-2" />
-                  <span className="hidden lg:inline">Login</span>
-                </Link>
-              </Button>
+              <div className="flex items-center space-x-2 ml-2 lg:ml-4">
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/login">
+                    <Users className="h-4 w-4 lg:mr-2" />
+                    <span className="hidden lg:inline">Login</span>
+                  </Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link to="/register">
+                    <span className="text-sm font-medium">Sign up</span>
+                  </Link>
+                </Button>
+              </div>
             )}
           </nav>
 
@@ -237,12 +244,19 @@ const Header = () => {
                       </div>
                     </div>
                   ) : (
-                    <Button asChild className="w-full">
-                      <Link to="/login" onClick={() => setIsOpen(false)}>
-                        <Users className="h-4 w-4 mr-2" />
-                        Login
-                      </Link>
-                    </Button>
+                    <div className="space-y-2">
+                      <Button asChild className="w-full">
+                        <Link to="/login" onClick={() => setIsOpen(false)}>
+                          <Users className="h-4 w-4 mr-2" />
+                          Login
+                        </Link>
+                      </Button>
+                      <Button asChild variant="outline" className="w-full">
+                        <Link to="/register" onClick={() => setIsOpen(false)}>
+                          Sign up
+                        </Link>
+                      </Button>
+                    </div>
                   )}
                 </div>
               </nav>

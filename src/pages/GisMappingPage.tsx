@@ -3,7 +3,7 @@ import QGISFilterableMap from '@/components/QGISFilterableMap';
 
 const GisMappingPage = () => {
   return (
-    <div className="h-screen">
+    <div className="h-screen" style={{height: '90vh'}}>
       <QGISFilterableMap />
     </div>
   );

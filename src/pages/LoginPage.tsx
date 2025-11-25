@@ -287,7 +287,13 @@ const Login = () => {
           )}
 
           {/* Back to Home */}
-          <div className="text-center mt-6">
+          <div className="text-center mt-6 space-y-2">
+            <div className="text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link to="/register" className="text-primary hover:underline">
+                Sign up
+              </Link>
+            </div>
             <Button variant="link" asChild>
               <Link to="/">← Back to Home</Link>
             </Button>

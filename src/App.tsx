@@ -14,6 +14,7 @@ import BackToTop from "@/components/BackToTop";
 import HomePage from "@/pages/HomePage";
 import RepositoryPage from "@/pages/RepositoryPage";
 import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ProfilePage from "@/pages/ProfilePage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -80,6 +81,7 @@ const App = () => {
                   
                   {/* Auth routes */}
                   <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
                   <Route path="/logout" element={<Logout />} />
                   <Route path="/profile" element={
                     <ProtectedRoute>

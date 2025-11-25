@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -17,12 +17,11 @@ import {
 import {
   BarChart3,
   TrendingUp,
-  Map as MapIcon,
   Activity,
   Download,
-  Info,
-  MousePointer,
-  Square,
+  AlertTriangle,
+  Users,
+  MapPin,
 } from "lucide-react";
 import {
   BarChart,
@@ -34,215 +33,351 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
   Legend,
 } from "recharts";
-import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import { healthDatasets, getDatasetsByCategory, getDatasetsByPortal } from "@/data/datasets";
+import { useAuthenticatedFetch } from "../hooks/useAuthenticatedFetch";
+import GeoJSON from "ol/format/GeoJSON";
 
-import type { Feature, Polygon } from "geojson";
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+interface MetricConfig {
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface LGATrendData {
+  lga: string;
+  totalCases: number;
+  facilities: number;
+  population: number | null;
+  incidence: number | null;
+}
+
+interface OutlierFacility {
+  facilityId: string;
+  facilityName: string;
+  lga: string;
+  cases: number;
+  zScore: number;
+  outlierType: 'high' | 'low';
+}
 
 const AnalyticsPage: React.FC = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("2024");
-  const [selectedDatasetType, setSelectedDatasetType] = useState<string>("all");
-  const [selectedLGA, setSelectedLGA] = useState<string | null>(null);
-  const [hoveredLGA, setHoveredLGA] = useState<string | null>(null);
-  const [drawMode, setDrawMode] = useState<boolean>(false);
-  const [selectedArea, setSelectedArea] = useState<any>(null);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE || 'https://api.anamgeohub.octaveanalytics.com/api';
+  const authenticatedFetch = useAuthenticatedFetch();
 
-  // Mock disease trend data
-  const diseaseData = [
-    { month: "Jan", malaria: 450, hiv: 89, tb: 34, ntd: 23 },
-    { month: "Feb", malaria: 520, hiv: 92, tb: 28, ntd: 31 },
-    { month: "Mar", malaria: 480, hiv: 88, tb: 41, ntd: 19 },
-    { month: "Apr", malaria: 390, hiv: 95, tb: 37, ntd: 27 },
-    { month: "May", malaria: 340, hiv: 91, tb: 33, ntd: 22 },
-    { month: "Jun", malaria: 410, hiv: 87, tb: 39, ntd: 29 },
-    { month: "Jul", malaria: 580, hiv: 94, tb: 45, ntd: 35 },
-    { month: "Aug", malaria: 620, hiv: 96, tb: 42, ntd: 38 },
-    { month: "Sep", malaria: 550, hiv: 89, tb: 36, ntd: 26 },
-    { month: "Oct", malaria: 490, hiv: 93, tb: 40, ntd: 31 },
-    { month: "Nov", malaria: 430, hiv: 90, tb: 35, ntd: 24 },
-    { month: "Dec", malaria: 380, hiv: 88, tb: 32, ntd: 20 },
+  // State
+  const [selectedMetric, setSelectedMetric] = useState<string>('severe_malaria');
+  const [loading, setLoading] = useState(false);
+  const [chartMode, setChartMode] = useState<'trends' | 'seasonality'>('trends');
+  const [selectedLGAs, setSelectedLGAs] = useState<string[]>([]);
+  
+  // Data state
+  const [allFeatures, setAllFeatures] = useState<any[]>([]);
+  const [yearSeries, setYearSeries] = useState<any[]>([]);
+  const [lgaYearSeries, setLgaYearSeries] = useState<Map<string, any[]>>(new Map());
+  const [seasonalitySeries, setSeasonalitySeries] = useState<any[]>([]);
+  const [lgaRankings, setLgaRankings] = useState<LGATrendData[]>([]);
+  const [outlierFacilities, setOutlierFacilities] = useState<OutlierFacility[]>([]);
+  const [underservedLGAs, setUnderservedLGAs] = useState<any[]>([]);
+  const [priorityLGAs, setPriorityLGAs] = useState<any[]>([]);
+
+  // Available metrics
+  const metrics: MetricConfig[] = [
+    { id: 'severe_malaria', name: 'Severe Malaria Cases', description: 'Cases of severe malaria' },
+    { id: 'sickle_cell', name: 'Sickle Cell Cases', description: 'Sickle cell disease cases' },
+    { id: 'breast_cancer', name: 'Breast Cancer Cases', description: 'Breast cancer cases' },
+    { id: 'death_cases', name: 'Death Cases', description: 'Death cases' },
+    { id: 'deliveries_sba', name: 'Deliveries with SBA', description: 'Deliveries with skilled birth attendant' },
+    { id: 'measles_under_5', name: 'Measles Cases (Under 5)', description: 'Measles cases in children under 5' },
   ];
 
-  // Mock LGA data
-  const lgaData = [
-    { name: "Aguata", cases: 400 },
-    { name: "Anaocha", cases: 570 },
-    { name: "Anambra East", cases: 190 },
-    { name: "Anambra West", cases: 595 },
-    { name: "Awka North", cases: 450 },
-    { name: "Awka South", cases: 380 },
-    { name: "Ayamelum", cases: 60 },
-    { name: "Dunukofia", cases: 165 },
-    { name: "Ekwusigo", cases: 655 },
-    { name: "Idemili North", cases: 100 },
-    { name: "Idemili South", cases: 110 },
-    { name: "Ihiala", cases: 420 },
-    { name: "Njikoka", cases: 75 },
-    { name: "Nnewi North", cases: 340 },
-    { name: "Nnewi South", cases: 280 },
-    { name: "Ogbaru", cases: 95 },
-    { name: "Onitsha North", cases: 620 },
-    { name: "Onitsha South", cases: 510 },
-    { name: "Orumba North", cases: 85 },
-    { name: "Orumba South", cases: 190 },
-    { name: "Oyi", cases: 70 },
-  ];
+  const currentMetric = metrics.find(m => m.id === selectedMetric) || metrics[0];
 
-  // Mock facility distribution data
-  const facilityData = [
-    { name: "Primary Health Centers", value: 248 },
-    { name: "Secondary Hospitals", value: 45 },
-    { name: "Tertiary Hospitals", value: 8 },
-    { name: "Private Clinics", value: 156 },
-  ];
+  // Load data when metric changes
+  useEffect(() => {
+    loadMetricData();
+  }, [selectedMetric]);
 
-  const COLORS = ["#f59e0b", "#3b82f6", "#10b981", "#8b5cf6"];
+  const loadMetricData = async () => {
+    setLoading(true);
+    try {
+      const response = await authenticatedFetch(`${API_BASE_URL}/health-metrics/${selectedMetric}`);
+      if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+      
+      const geojson = await response.json();
+      const features = new GeoJSON().readFeatures(geojson, {
+        featureProjection: 'EPSG:3857'
+      });
+      
+      setAllFeatures(features);
+      computeAnalytics(features);
+    } catch (error) {
+      console.error('Error loading metric data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const computeAnalytics = (features: any[]) => {
+    // 1. Compute yearly state trends
+    const yearTotals = new Map<number, number>();
+    const yearSet = new Set<number>();
+    
+    for (const f of features) {
+      const periodRaw = f.get('period');
+      if (!periodRaw) continue;
+      const periodStr = String(periodRaw);
+      if (periodStr.length < 4) continue;
+      const year = Number(periodStr.slice(0, 4));
+      if (isNaN(year)) continue;
+      const cases = Number(f.get('case_count') || 0);
+      yearSet.add(year);
+      yearTotals.set(year, (yearTotals.get(year) || 0) + cases);
+    }
+    
+    const years = Array.from(yearSet).sort();
+    setYearSeries(years.map(year => ({
+      year,
+      label: String(year),
+      stateCases: yearTotals.get(year) || 0,
+    })));
+
+    // 2. Compute LGA-level year trends
+    const lgaYearMap = new Map<string, Map<number, number>>();
+    for (const f of features) {
+      const lga = f.get('lga_name');
+      const periodRaw = f.get('period');
+      if (!lga || !periodRaw) continue;
+      const periodStr = String(periodRaw);
+      if (periodStr.length < 4) continue;
+      const year = Number(periodStr.slice(0, 4));
+      if (isNaN(year)) continue;
+      const cases = Number(f.get('case_count') || 0);
+      if (!lgaYearMap.has(lga)) lgaYearMap.set(lga, new Map());
+      const yearMap = lgaYearMap.get(lga)!;
+      yearMap.set(year, (yearMap.get(year) || 0) + cases);
+    }
+
+    const lgaSeriesMap = new Map<string, any[]>();
+    for (const [lga, yearMap] of lgaYearMap.entries()) {
+      lgaSeriesMap.set(lga, years.map(year => ({
+        year,
+        label: String(year),
+        cases: yearMap.get(year) || 0,
+      })));
+    }
+    setLgaYearSeries(lgaSeriesMap);
+
+    // 3. Compute seasonality (average by month across all years)
+    const monthTotals = new Map<number, number>();
+    const monthCounts = new Map<number, number>();
+    for (const f of features) {
+      const periodRaw = f.get('period');
+      if (!periodRaw) continue;
+      const periodStr = String(periodRaw);
+      if (periodStr.length < 6) continue;
+      const month = Number(periodStr.slice(4, 6));
+      if (isNaN(month) || month < 1 || month > 12) continue;
+      const cases = Number(f.get('case_count') || 0);
+      monthTotals.set(month, (monthTotals.get(month) || 0) + cases);
+      monthCounts.set(month, (monthCounts.get(month) || 0) + 1);
+    }
+
+    const seasonality = Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1;
+      const total = monthTotals.get(month) || 0;
+      const count = monthCounts.get(month) || 1;
+      return {
+        month,
+        label: MONTH_LABELS[i],
+        avgCases: count > 0 ? total / count : 0,
+      };
+    });
+    setSeasonalitySeries(seasonality);
+
+    // 4. Compute LGA rankings
+    const lgaMap = new Map<string, { totalCases: number; facilities: Set<string>; population: number | null }>();
+    for (const f of features) {
+      const lga = f.get('lga_name');
+      if (!lga) continue;
+      const cases = Number(f.get('case_count') || 0);
+      const facilityId = f.get('facility_id') || f.get('facility_name') || '';
+      const pop = f.get('population');
+      const popVal = pop !== undefined && pop !== null ? Number(pop) : null;
+      
+      if (!lgaMap.has(lga)) {
+        lgaMap.set(lga, { totalCases: 0, facilities: new Set(), population: popVal });
+      }
+      const lgaData = lgaMap.get(lga)!;
+      lgaData.totalCases += cases;
+      if (facilityId) lgaData.facilities.add(String(facilityId));
+      if (popVal && !lgaData.population) lgaData.population = popVal;
+    }
+
+    const rankings: LGATrendData[] = Array.from(lgaMap.entries()).map(([lga, data]) => {
+      const incidence = data.population && data.population > 0
+        ? (data.totalCases / data.population) * 1000
+        : null;
+      return {
+        lga,
+        totalCases: data.totalCases,
+        facilities: data.facilities.size,
+        population: data.population,
+        incidence,
+      };
+    }).sort((a, b) => b.totalCases - a.totalCases);
+    
+    setLgaRankings(rankings);
+
+    // 5. Compute outlier facilities using z-scores within each LGA
+    const lgaFacilityMap = new Map<string, Map<string, { name: string; cases: number }>>();
+    
+    // Aggregate facility cases per LGA
+    for (const f of features) {
+      const lga = f.get('lga_name');
+      const facilityId = f.get('facility_id') || f.get('facility_name') || '';
+      const facilityName = f.get('facility_name') || 'Unknown Facility';
+      const cases = Number(f.get('case_count') || 0);
+      
+      if (!lga || !facilityId) continue;
+      
+      if (!lgaFacilityMap.has(lga)) {
+        lgaFacilityMap.set(lga, new Map());
+      }
+      const facilityMap = lgaFacilityMap.get(lga)!;
+      if (!facilityMap.has(facilityId)) {
+        facilityMap.set(facilityId, { name: facilityName, cases: 0 });
+      }
+      facilityMap.get(facilityId)!.cases += cases;
+    }
+
+    // Compute z-scores per LGA and identify outliers
+    const allOutliers: OutlierFacility[] = [];
+    const Z_SCORE_THRESHOLD = 2.0;
+
+    for (const [lga, facilityMap] of lgaFacilityMap.entries()) {
+      const facilityCases = Array.from(facilityMap.values()).map(f => f.cases);
+      
+      // Need at least 3 facilities to compute meaningful statistics
+      if (facilityCases.length < 3) continue;
+      
+      // Compute mean and standard deviation
+      const mean = facilityCases.reduce((sum, val) => sum + val, 0) / facilityCases.length;
+      const variance = facilityCases.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / facilityCases.length;
+      const stdDev = Math.sqrt(variance);
+      
+      // Skip if no variation (all facilities have same cases)
+      if (stdDev === 0) continue;
+      
+      // Calculate z-scores and flag outliers
+      for (const [facilityId, facilityData] of facilityMap.entries()) {
+        const zScore = (facilityData.cases - mean) / stdDev;
+        
+        if (Math.abs(zScore) >= Z_SCORE_THRESHOLD) {
+          allOutliers.push({
+            facilityId,
+            facilityName: facilityData.name,
+            lga,
+            cases: facilityData.cases,
+            zScore,
+            outlierType: zScore > 0 ? 'high' : 'low',
+          });
+        }
+      }
+    }
+
+    // Sort by absolute z-score (most extreme outliers first)
+    allOutliers.sort((a, b) => Math.abs(b.zScore) - Math.abs(a.zScore));
+    setOutlierFacilities(allOutliers);
+
+    // 6. Compute underserved LGAs (facilities per population)
+    const underserved = rankings
+      .filter(lga => lga.population && lga.population > 0)
+      .map(lga => {
+        const facilitiesPer10k = (lga.facilities / lga.population!) * 10000;
+        const underservedScore = lga.incidence !== null && facilitiesPer10k > 0
+          ? lga.incidence / facilitiesPer10k
+          : 0;
+        return {
+          lga: lga.lga,
+          population: lga.population!,
+          facilities: lga.facilities,
+          facilitiesPer10k,
+          totalCases: lga.totalCases,
+          incidence: lga.incidence,
+          underservedScore,
+        };
+      })
+      .sort((a, b) => b.underservedScore - a.underservedScore);
+    
+    setUnderservedLGAs(underserved);
+
+    // 7. Compute priority LGAs (combined score: burden + underserved + incidence)
+    const priorities = rankings
+      .filter(lga => lga.population && lga.population > 0 && lga.incidence !== null)
+      .map(lga => {
+        const facilitiesPer10k = (lga.facilities / lga.population!) * 10000;
+        const underservedScore = lga.incidence! / (facilitiesPer10k + 0.01);
+        
+        // Normalize scores to 0-100 scale
+        const maxCases = Math.max(...rankings.map(r => r.totalCases));
+        const maxIncidence = Math.max(...rankings.filter(r => r.incidence !== null).map(r => r.incidence!));
+        const maxUnderserved = Math.max(...underserved.map(u => u.underservedScore));
+        
+        const burdenScore = (lga.totalCases / maxCases) * 100;
+        const incidenceScore = (lga.incidence! / maxIncidence) * 100;
+        const underservedScoreNorm = (underservedScore / maxUnderserved) * 100;
+        
+        // Weighted average: burden 40%, incidence 30%, underserved 30%
+        const priorityScore = (burdenScore * 0.4) + (incidenceScore * 0.3) + (underservedScoreNorm * 0.3);
+        
+        return {
+          lga: lga.lga,
+          totalCases: lga.totalCases,
+          incidence: lga.incidence,
+          facilities: lga.facilities,
+          population: lga.population,
+          facilitiesPer10k,
+          priorityScore,
+        };
+      })
+      .sort((a, b) => b.priorityScore - a.priorityScore);
+    
+    setPriorityLGAs(priorities);
+  };
+
+  const totalCases = lgaRankings.reduce((sum, lga) => sum + lga.totalCases, 0);
+  const totalFacilities = lgaRankings.reduce((sum, lga) => sum + lga.facilities, 0);
+  const totalLGAs = lgaRankings.length;
 
   const keyMetrics = [
     {
-      title: "Total Cases This Month",
-      value: "2,847",
-      change: "+12.5%",
-      changeType: "increase",
+      title: "Total Cases (All Time)",
+      value: totalCases.toLocaleString(),
       icon: Activity,
       color: "text-red-600",
     },
     {
       title: "Health Facilities",
-      value: "457",
-      change: "+3",
-      changeType: "increase",
-      icon: MapIcon,
+      value: totalFacilities.toLocaleString(),
+      icon: MapPin,
       color: "text-blue-600",
     },
     {
-      title: "Data Coverage",
-      value: "98.7%",
-      change: "+1.2%",
-      changeType: "increase",
+      title: "LGAs Covered",
+      value: totalLGAs.toString(),
       icon: BarChart3,
       color: "text-green-600",
     },
     {
-      title: "Response Rate",
-      value: "94.3%",
-      change: "-0.8%",
-      changeType: "decrease",
-      icon: TrendingUp,
+      title: "Outlier Facilities",
+      value: outlierFacilities.length.toString(),
+      icon: AlertTriangle,
       color: "text-primary",
     },
   ];
-
-  // Demo Anambra GeoJSON
-  const lgaCenters = [
-    { name: "Aguata", coord: [7.09, 6.03], datasets: getDatasetsByCategory('disease').length + getDatasetsByCategory('facility').length },
-    { name: "Anaocha", coord: [6.95, 6.17], datasets: getDatasetsByPortal('DHIS2').length },
-    { name: "Anambra East", coord: [7.66, 6.18], datasets: getDatasetsByCategory('population').length },
-    { name: "Anambra West", coord: [6.40, 6.56], datasets: getDatasetsByPortal('GRID3').length },
-    { name: "Awka North", coord: [7.01, 6.36], datasets: getDatasetsByCategory('facility').length },
-    { name: "Awka South", coord: [7.07, 6.21], datasets: getDatasetsByPortal('DHIS2').length },
-    { name: "Ayamelum", coord: [6.50, 6.40], datasets: getDatasetsByCategory('population').length },
-    { name: "Dunukofia", coord: [6.90, 6.25], datasets: getDatasetsByCategory('disease').length },
-    { name: "Ekwusigo", coord: [6.96, 6.08], datasets: getDatasetsByPortal('DHIS2').length },
-    { name: "Idemili North", coord: [6.83, 6.22], datasets: getDatasetsByCategory('facility').length },
-    { name: "Idemili South", coord: [6.80, 6.15], datasets: getDatasetsByCategory('disease').length },
-    { name: "Ihiala", coord: [6.09, 5.98], datasets: getDatasetsByPortal('DHIS2').length },
-    { name: "Njikoka", coord: [7.03, 6.18], datasets: getDatasetsByCategory('population').length },
-    { name: "Nnewi North", coord: [6.03, 6.01], datasets: getDatasetsByCategory('facility').length },
-    { name: "Nnewi South", coord: [6.02, 5.90], datasets: getDatasetsByCategory('disease').length },
-    { name: "Ogbaru", coord: [6.75, 5.95], datasets: getDatasetsByPortal('GRID3').length },
-    { name: "Onitsha North", coord: [6.78, 6.16], datasets: getDatasetsByCategory('facility').length },
-    { name: "Onitsha South", coord: [6.80, 6.14], datasets: getDatasetsByCategory('disease').length },
-    { name: "Orumba North", coord: [7.18, 6.02], datasets: getDatasetsByCategory('population').length },
-    { name: "Orumba South", coord: [7.22, 5.95], datasets: getDatasetsByCategory('facility').length },
-    { name: "Oyi", coord: [7.13, 6.33], datasets: getDatasetsByCategory('population').length },
-  ];
-
-  const makeSquarePolygon = (lng: number, lat: number, size = 0.035): number[][][] => [
-    [
-      [lng - size, lat - size],
-      [lng + size, lat - size],
-      [lng + size, lat + size],
-      [lng - size, lat + size],
-      [lng - size, lat - size],
-    ],
-  ];
-
-  const anambraGeoJSON = useMemo(() => {
-    return {
-      type: "FeatureCollection",
-      features: lgaCenters.map((lga) => ({
-        type: "Feature",
-        properties: {
-          name: lga.name,
-          datasets: lga.datasets,
-          portal: selectedDatasetType === 'all' ? 'mixed' : selectedDatasetType,
-          category: 'mixed'
-        },
-        geometry: {
-          type: "Polygon",
-          coordinates: makeSquarePolygon(lga.coord[0], lga.coord[1], 0.03)
-        },
-      })),
-    };
-  }, [selectedDatasetType]);
-
-  const nigeriaGeoJSON = useMemo(() => ({
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        properties: { name: "NigeriaBBox" },
-        geometry: {
-          type: "Polygon",
-          coordinates: [[[2.6, 4.2], [14.8, 4.2], [14.8, 13.9], [2.6, 13.9], [2.6, 4.2]]],
-        },
-      },
-    ],
-  }), []);
-
-  const nigeriaStyle = () => ({
-    fillColor: "#e6e6e6",
-    color: "#bdbdbd",
-    weight: 1,
-    fillOpacity: 0.55,
-  });
-
-  const anambraStyle = (feature: any) => {
-    const datasets = feature?.properties?.datasets || 0;
-    const opacity = Math.min(datasets / 10, 1);
-    return {
-      fillColor: datasets > 5 ? "#ffaa00" : datasets > 2 ? "#ffcc66" : "#ffe6b3",
-      color: "#b36e00",
-      weight: 2,
-      fillOpacity: 0.7 + (opacity * 0.3),
-    };
-  };
-
-  // Add dataset selection controls
-  const datasetTypes = [
-    { value: 'all', label: 'All Datasets' },
-    { value: 'DHIS2', label: 'DHIS2 Data' },
-    { value: 'GRID3', label: 'GRID3 Data' },
-    { value: 'HFR', label: 'Health Facility Registry' },
-    { value: 'NHMIS', label: 'NHMIS Data' },
-  ];
-
-  const handleDownloadSelectedArea = () => {
-    if (selectedArea) {
-      const datasets = healthDatasets.filter(d =>
-        d.portal === selectedDatasetType ||
-        (selectedDatasetType === 'all' && d.accessLevel === 'public')
-      );
-      // In a real app, this would trigger actual downloads
-    }
-  };
 
   return (
     <div className="min-h-screen py-8">
@@ -259,14 +394,14 @@ const AnalyticsPage: React.FC = () => {
           </div>
 
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-full md:w-32">
+            <Select value={selectedMetric} onValueChange={setSelectedMetric}>
+              <SelectTrigger className="w-full md:w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="2024">2024</SelectItem>
-                <SelectItem value="2023">2023</SelectItem>
-                <SelectItem value="2022">2022</SelectItem>
+                {metrics.map(m => (
+                  <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -286,9 +421,6 @@ const AnalyticsPage: React.FC = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">{metric.title}</p>
                     <p className="text-2xl font-bold">{metric.value}</p>
-                    <p className={`text-sm ${metric.changeType === "increase" ? "text-green-600" : "text-red-600"}`}>
-                      {metric.change}
-                    </p>
                   </div>
                   <Icon className={`h-6 w-6 ${metric.color}`} />
                 </CardContent>
@@ -297,194 +429,366 @@ const AnalyticsPage: React.FC = () => {
           })}
         </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Disease Trends Over Time</CardTitle>
-              <CardDescription>Monthly case reports for major diseases in 2024</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={diseaseData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="malaria" stroke="#f59e0b" />
-                    <Line type="monotone" dataKey="hiv" stroke="#3b82f6" />
-                    <Line type="monotone" dataKey="tb" stroke="#10b981" />
-                    <Line type="monotone" dataKey="ntd" stroke="#8b5cf6" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+          </div>
+        )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Cases by Local Government Area</CardTitle>
-              <CardDescription>Disease burden across all 21 LGAs</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-96">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={lgaData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" height={120} tick={{ fontSize: 10 }} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="cases" fill="#f59e0b" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {!loading && (
+          <>
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>{chartMode === 'trends' ? 'Trends Over Time' : 'Seasonality Pattern'}</CardTitle>
+                      <CardDescription>
+                        {chartMode === 'trends' 
+                          ? `${currentMetric.name} yearly trends` 
+                          : `Average ${currentMetric.name} by month`}
+                      </CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant={chartMode === 'trends' ? 'default' : 'outline'} 
+                        size="sm"
+                        onClick={() => setChartMode('trends')}
+                      >
+                        Trends
+                      </Button>
+                      <Button 
+                        variant={chartMode === 'seasonality' ? 'default' : 'outline'} 
+                        size="sm"
+                        onClick={() => setChartMode('seasonality')}
+                      >
+                        Seasonality
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      {chartMode === 'trends' ? (
+                        <LineChart data={yearSeries}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="label" />
+                          <YAxis allowDecimals={false} />
+                          <Tooltip />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="stateCases" 
+                            stroke="#f59e0b" 
+                            strokeWidth={2}
+                            name="State Total"
+                          />
+                        </LineChart>
+                      ) : (
+                        <BarChart data={seasonalitySeries}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="label" />
+                          <YAxis allowDecimals={false} />
+                          <Tooltip />
+                          <Bar dataKey="avgCases" fill="#f59e0b" name="Avg Cases" />
+                        </BarChart>
+                      )}
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Facility Distribution + Summary */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Health Facility Distribution</CardTitle>
-              <CardDescription>Breakdown by facility type</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={facilityData} dataKey="value" nameKey="name" outerRadius={120} label>
-                      {facilityData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top 10 LGAs by Total Cases</CardTitle>
+                  <CardDescription>Disease burden across Local Government Areas</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-96">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={lgaRankings.slice(0, 10)}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="lga" 
+                          interval={0} 
+                          angle={-45} 
+                          textAnchor="end" 
+                          height={120} 
+                          tick={{ fontSize: 10 }} 
+                        />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Bar dataKey="totalCases" fill="#f59e0b" name="Total Cases" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* LGA Rankings Table */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>LGA Burden Summary</CardTitle>
+                <CardDescription>
+                  Complete ranking of all LGAs by {currentMetric.name}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-2 font-semibold">Rank</th>
+                        <th className="text-left p-2 font-semibold">LGA</th>
+                        <th className="text-right p-2 font-semibold">Total Cases</th>
+                        <th className="text-right p-2 font-semibold">Facilities</th>
+                        <th className="text-right p-2 font-semibold">Population</th>
+                        <th className="text-right p-2 font-semibold">Incidence (per 1,000)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lgaRankings.map((lga, idx) => (
+                        <tr key={lga.lga} className="border-b hover:bg-gray-50">
+                          <td className="p-2">{idx + 1}</td>
+                          <td className="p-2 font-medium">{lga.lga}</td>
+                          <td className="p-2 text-right">{lga.totalCases.toLocaleString()}</td>
+                          <td className="p-2 text-right">{lga.facilities}</td>
+                          <td className="p-2 text-right">
+                            {lga.population ? lga.population.toLocaleString() : 'N/A'}
+                          </td>
+                          <td className="p-2 text-right">
+                            {lga.incidence !== null ? lga.incidence.toFixed(2) : 'N/A'}
+                          </td>
+                        </tr>
                       ))}
-                    </Pie>
-                    <Legend />
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Monthly Summary</CardTitle>
-              <CardDescription>Key performance indicators for this month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 mb-4">
-                <li><strong>85%</strong> Immunization Coverage</li>
-                <li><strong>92%</strong> Skilled Birth Attendance</li>
-                <li><strong>78%</strong> ANC Coverage</li>
-                <li><strong>96%</strong> Data Completeness</li>
-              </ul>
-              <h4 className="font-semibold mb-2">Key Insights</h4>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                <li>Malaria cases show seasonal increase during rainy season</li>
-                <li>Onitsha North reports highest case burden due to population density</li>
-                <li>Primary health centers cover 87% of health service delivery</li>
-                <li>Data reporting compliance improved by 12% this quarter</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
+            {/* Outlier Facilities */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Outlier Facilities</CardTitle>
+                <CardDescription>
+                  Facilities with unusually high or low case counts compared to peers in the same LGA (z-score ≥ 2.0)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {outlierFacilities.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No significant outliers detected for this metric.
+                  </p>
+                ) : (
+                  <div className="space-y-6">
+                    {/* High Outliers */}
+                    <div>
+                      <h3 className="text-base font-semibold mb-3 text-red-600">
+                        High Outliers ({outlierFacilities.filter(f => f.outlierType === 'high').length})
+                      </h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left p-2 font-semibold text-sm">Facility</th>
+                              <th className="text-left p-2 font-semibold text-sm">LGA</th>
+                              <th className="text-right p-2 font-semibold text-sm">Total Cases</th>
+                              <th className="text-right p-2 font-semibold text-sm">Z-Score</th>
+                              <th className="text-left p-2 font-semibold text-sm">Interpretation</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {outlierFacilities
+                              .filter(f => f.outlierType === 'high')
+                              .slice(0, 10)
+                              .map((facility, idx) => (
+                                <tr key={idx} className="border-b hover:bg-red-50">
+                                  <td className="p-2 text-sm">{facility.facilityName}</td>
+                                  <td className="p-2 text-sm">{facility.lga}</td>
+                                  <td className="p-2 text-right text-sm font-medium">{facility.cases.toLocaleString()}</td>
+                                  <td className="p-2 text-right text-sm font-mono">{facility.zScore.toFixed(2)}</td>
+                                  <td className="p-2 text-sm text-red-600">
+                                    {facility.zScore >= 3 
+                                      ? 'Very high - investigate' 
+                                      : 'High - monitor closely'}
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
 
-        {/* Map */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <CardTitle>Interactive Data Portal Map</CardTitle>
-                <CardDescription>Click LGAs to view available datasets and download data directly.</CardDescription>
-              </div>
-              <div className="flex flex-col md:flex-row gap-3">
-                <Select value={selectedDatasetType} onValueChange={setSelectedDatasetType}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue placeholder="Select Dataset Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {datasetTypes.map(type => (
-                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant={drawMode ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setDrawMode(!drawMode)}
-                >
-                  <Square className="h-4 w-4 mr-2" />
-                  {drawMode ? "Exit Selection" : "Select Area"}
-                </Button>
-                {selectedArea && (
-                  <Button variant="outline" size="sm" onClick={handleDownloadSelectedArea}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Selected
-                  </Button>
+                    {/* Low Outliers */}
+                    <div>
+                      <h3 className="text-base font-semibold mb-3 text-blue-600">
+                        Low Outliers ({outlierFacilities.filter(f => f.outlierType === 'low').length})
+                      </h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left p-2 font-semibold text-sm">Facility</th>
+                              <th className="text-left p-2 font-semibold text-sm">LGA</th>
+                              <th className="text-right p-2 font-semibold text-sm">Total Cases</th>
+                              <th className="text-right p-2 font-semibold text-sm">Z-Score</th>
+                              <th className="text-left p-2 font-semibold text-sm">Interpretation</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {outlierFacilities
+                              .filter(f => f.outlierType === 'low')
+                              .slice(0, 10)
+                              .map((facility, idx) => (
+                                <tr key={idx} className="border-b hover:bg-blue-50">
+                                  <td className="p-2 text-sm">{facility.facilityName}</td>
+                                  <td className="p-2 text-sm">{facility.lga}</td>
+                                  <td className="p-2 text-right text-sm font-medium">{facility.cases.toLocaleString()}</td>
+                                  <td className="p-2 text-right text-sm font-mono">{facility.zScore.toFixed(2)}</td>
+                                  <td className="p-2 text-sm text-blue-600">
+                                    {facility.zScore <= -3 
+                                      ? 'Very low - possible under-reporting' 
+                                      : 'Low - verify data quality'}
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px] md:h-[560px] w-full rounded-lg overflow-hidden">
-              <MapContainer center={[6.25, 6.92]} zoom={8} scrollWheelZoom={true} className="h-full w-full">
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <GeoJSON
-                  data={nigeriaGeoJSON as any}
-                  pathOptions={{
-                    fillColor: "#e6e6e6",
-                    color: "#bdbdbd",
-                    weight: 1,
-                    fillOpacity: 0.55,
-                  }}
-                />
-                <GeoJSON
-                  data={anambraGeoJSON as any}
-                  pathOptions={(feature: any) => {
-                    const datasets = feature?.properties?.datasets || 0;
-                    const opacity = Math.min(datasets / 10, 1);
-                    return {
-                      fillColor: datasets > 5 ? "#ffaa00" : datasets > 2 ? "#ffcc66" : "#ffe6b3",
-                      color: "#b36e00",
-                      weight: 2,
-                      fillOpacity: 0.7 + (opacity * 0.3),
-                    };
-                  }}
-                  onEachFeature={(feature: Feature<Polygon, any>, layer: any) => {
-                    if (!feature.properties) return;
-                    const { name, datasets, portal, category } = feature.properties;
+              </CardContent>
+            </Card>
 
-                    layer.bindTooltip(`
-                      <strong>${name}</strong><br/>
-                      <strong>Datasets Available:</strong> ${datasets}<br/>
-                      <strong>Primary Portal:</strong> ${portal}<br/>
-                      <strong>Category:</strong> ${category}
-                    `, { sticky: true });
+            {/* Underserved Areas */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Underserved Areas</CardTitle>
+                <CardDescription>
+                  LGAs ranked by underserved score (incidence / facilities per 10k population)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {underservedLGAs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Population data not available for underserved analysis.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2 font-semibold text-sm">Rank</th>
+                          <th className="text-left p-2 font-semibold text-sm">LGA</th>
+                          <th className="text-right p-2 font-semibold text-sm">Population</th>
+                          <th className="text-right p-2 font-semibold text-sm">Facilities</th>
+                          <th className="text-right p-2 font-semibold text-sm">Facilities per 10k</th>
+                          <th className="text-right p-2 font-semibold text-sm">Incidence (per 1,000)</th>
+                          <th className="text-right p-2 font-semibold text-sm">Underserved Score</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {underservedLGAs.slice(0, 15).map((lga, idx) => (
+                          <tr 
+                            key={lga.lga} 
+                            className={`border-b hover:bg-gray-50 ${idx < 5 ? 'bg-amber-50' : ''}`}
+                          >
+                            <td className="p-2 text-sm">{idx + 1}</td>
+                            <td className="p-2 text-sm font-medium">{lga.lga}</td>
+                            <td className="p-2 text-right text-sm">{lga.population.toLocaleString()}</td>
+                            <td className="p-2 text-right text-sm">{lga.facilities}</td>
+                            <td className="p-2 text-right text-sm">{lga.facilitiesPer10k.toFixed(2)}</td>
+                            <td className="p-2 text-right text-sm">
+                              {lga.incidence !== null ? lga.incidence.toFixed(2) : 'N/A'}
+                            </td>
+                            <td className="p-2 text-right text-sm font-semibold text-amber-700">
+                              {lga.underservedScore.toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <p className="text-xs text-muted-foreground mt-3">
+                      Top 5 highlighted. High score = high burden but low facility coverage.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-                    layer.on('click', () => {
-                      setSelectedLGA(name);
-                    });
-                  }}
-                />
-              </MapContainer>
-            </div>
-            {selectedLGA && (
-              <div className="mt-4 p-4 bg-[#ffaa00]/10 border border-[#ffaa00]/20 rounded-lg">
-                <h4 className="font-semibold text-[#ffaa00] mb-2">Selected LGA: {selectedLGA}</h4>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Available datasets in this area will be shown here.
-                </p>
-                <Button size="sm" onClick={() => setSelectedLGA(null)}>
-                  Clear Selection
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            {/* Priority Ranking */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Priority Ranking for Action</CardTitle>
+                <CardDescription>
+                  LGAs ranked by combined priority score (burden 40%, incidence 30%, underserved 30%)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {priorityLGAs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Priority analysis requires population and incidence data.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2 font-semibold text-sm">Rank</th>
+                          <th className="text-left p-2 font-semibold text-sm">LGA</th>
+                          <th className="text-right p-2 font-semibold text-sm">Total Cases</th>
+                          <th className="text-right p-2 font-semibold text-sm">Incidence</th>
+                          <th className="text-right p-2 font-semibold text-sm">Facilities per 10k</th>
+                          <th className="text-right p-2 font-semibold text-sm">Priority Score</th>
+                          <th className="text-left p-2 font-semibold text-sm">Action Tier</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {priorityLGAs.map((lga, idx) => {
+                          let tier = 'Monitor';
+                          let tierColor = 'text-gray-600';
+                          if (idx < 3) {
+                            tier = 'Tier 1 - Urgent';
+                            tierColor = 'text-red-600 font-semibold';
+                          } else if (idx < 7) {
+                            tier = 'Tier 2 - High';
+                            tierColor = 'text-orange-600 font-medium';
+                          } else if (idx < 12) {
+                            tier = 'Tier 3 - Medium';
+                            tierColor = 'text-amber-600';
+                          }
+                          
+                          return (
+                            <tr 
+                              key={lga.lga} 
+                              className={`border-b hover:bg-gray-50 ${idx < 3 ? 'bg-red-50' : idx < 7 ? 'bg-orange-50' : ''}`}
+                            >
+                              <td className="p-2 text-sm">{idx + 1}</td>
+                              <td className="p-2 text-sm font-medium">{lga.lga}</td>
+                              <td className="p-2 text-right text-sm">{lga.totalCases.toLocaleString()}</td>
+                              <td className="p-2 text-right text-sm">{lga.incidence!.toFixed(2)}</td>
+                              <td className="p-2 text-right text-sm">{lga.facilitiesPer10k.toFixed(2)}</td>
+                              <td className="p-2 text-right text-sm font-semibold">{lga.priorityScore.toFixed(1)}</td>
+                              <td className={`p-2 text-sm ${tierColor}`}>{tier}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    <p className="text-xs text-muted-foreground mt-3">
+                      Tier 1 (top 3) = immediate action; Tier 2 (4-7) = high priority; Tier 3 (8-12) = medium priority
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </div>
   );

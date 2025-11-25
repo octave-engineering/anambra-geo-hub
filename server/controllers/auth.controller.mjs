@@ -145,6 +145,11 @@ export const register = async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ error: 'username, email, and password are required' });
     }
+
+    const allowedRoles = ['admin', 'partner', 'user'];
+    const requestedRole = allowedRoles.includes(role) ? role : 'user';
+    const requiresApproval = requestedRole === 'admin' || requestedRole === 'partner';
+    const isActive = !requiresApproval;
     
     // Check if user exists
     const existingUser = await pool.query(
@@ -162,20 +167,26 @@ export const register = async (req, res) => {
     
     // Insert user
     const result = await pool.query(
-      'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role',
-      [username, email, passwordHash, role]
+      'INSERT INTO users (username, email, password_hash, role, is_active) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, email, role, is_active',
+      [username, email, passwordHash, requestedRole, isActive]
     );
     
     const newUser = result.rows[0];
+
+    const message = requiresApproval
+      ? 'Account request submitted. An administrator must approve your access before you can log in.'
+      : 'User created successfully';
     
     return res.status(201).json({ 
       ok: true, 
-      message: 'User created successfully',
+      message,
+      pendingApproval: requiresApproval,
       user: {
         id: newUser.id,
         username: newUser.username,
         email: newUser.email,
-        role: newUser.role
+        role: newUser.role,
+        isActive: newUser.is_active
       }
     });
   } catch (error) {
