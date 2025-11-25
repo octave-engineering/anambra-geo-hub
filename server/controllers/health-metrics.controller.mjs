@@ -25,28 +25,34 @@ export const getHealthMetrics = async (req, res, next) => {
 
     const metricConfig = getMetricConfig(metric);
     
-    // Build query
+    // Build query with population data joined
     let query = `
       SELECT 
-        fact_record_id,
-        dataset_uid,
-        dataelement_uid,
-        dataelement_name,
-        period,
-        CAST(case_count AS FLOAT) as case_count,
-        facility_id,
-        facility_name,
-        lga_id,
-        lga_name,
-        lastupdated,
-        facility_name_dim,
-        parentlganame,
-        parentwardname,
-        ST_AsGeoJSON(geom)::json as geometry,
-        ST_X(geom) as longitude,
-        ST_Y(geom) as latitude
-      FROM ${metricConfig.view}
-      WHERE geom IS NOT NULL
+        m.fact_record_id,
+        m.dataset_uid,
+        m.dataelement_uid,
+        m.dataelement_name,
+        m.period,
+        CAST(m.case_count AS FLOAT) as case_count,
+        m.facility_id,
+        m.facility_name,
+        m.lga_id,
+        m.lga_name,
+        m.lastupdated,
+        m.facility_name_dim,
+        m.parentlganame,
+        m.parentwardname,
+        ST_AsGeoJSON(m.geom)::json as geometry,
+        ST_X(m.geom) as longitude,
+        ST_Y(m.geom) as latitude,
+        p.population,
+        CASE 
+          WHEN p.population > 0 THEN (CAST(m.case_count AS FLOAT) / p.population) * 1000
+          ELSE NULL
+        END as incidence_per_1000
+      FROM ${metricConfig.view} m
+      LEFT JOIN grid3_processed.population_lga p ON m.lga_name = p.lga_name
+      WHERE m.geom IS NOT NULL
     `;
     
     const params = [];
@@ -55,21 +61,21 @@ export const getHealthMetrics = async (req, res, next) => {
     // Apply filters
     if (lga) {
       params.push(lga);
-      query += ` AND lga_name ILIKE $${paramIndex++}`;
+      query += ` AND m.lga_name ILIKE $${paramIndex++}`;
     }
     
     if (ward) {
       params.push(ward);
-      query += ` AND parentwardname ILIKE $${paramIndex++}`;
+      query += ` AND m.parentwardname ILIKE $${paramIndex++}`;
     }
     
     if (period) {
       params.push(period);
-      query += ` AND period = $${paramIndex++}`;
+      query += ` AND m.period = $${paramIndex++}`;
     }
     
     // Add ordering and limit
-    query += ` ORDER BY period DESC, facility_name`;
+    query += ` ORDER BY m.period DESC, m.facility_name`;
     
     // Enforce max limit
     const finalLimit = Math.min(parseInt(limit), config.api.maxLimit);
@@ -110,7 +116,9 @@ export const getHealthMetrics = async (req, res, next) => {
           parentlganame: row.parentlganame,
           parentwardname: row.parentwardname,
           longitude: row.longitude,
-          latitude: row.latitude
+          latitude: row.latitude,
+          population: row.population,
+          incidence_per_1000: row.incidence_per_1000
         },
         geometry: row.geometry
       }))
