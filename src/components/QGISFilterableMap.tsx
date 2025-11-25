@@ -100,15 +100,6 @@ const QGISFilterableMap = () => {
   const [compareLoading, setCompareLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'single' | 'split'>('single');
 
-  // GRID3 layer state
-  const [grid3Layers, setGrid3Layers] = useState<{[key: string]: boolean}>({
-    population: false,
-    settlements: false,
-    facility_access: false
-  });
-  const [grid3Data, setGrid3Data] = useState<{[key: string]: any}>({});
-  const grid3LayerRefs = useRef<{[key: string]: VectorLayer<VectorSource>}>({});
-
   // Available metrics (fetched from API)
   const metrics: MetricConfig[] = [
     {
@@ -369,50 +360,6 @@ const QGISFilterableMap = () => {
             : 'N/A';
           setSelectedLga(lgaName);
           setSelectedLgaPopulation(!Number.isNaN(populationValue) ? populationValue : null);
-          
-          // Get GRID3 data for this LGA if available
-          let grid3Info = '';
-          if (lgaName && Object.values(grid3Layers).some(v => v)) {
-            const grid3Sections = [];
-            
-            // Population data
-            if (grid3Layers.population && grid3Data.population) {
-              const lgaPopFeature = grid3Data.population.find((f: any) => 
-                f.get('lga_name') === lgaName
-              );
-              if (lgaPopFeature) {
-                const totalPop = lgaPopFeature.get('total_population');
-                const malePop = lgaPopFeature.get('male_population');
-                const femalePop = lgaPopFeature.get('female_population');
-                grid3Sections.push(`
-                  <div class="mt-3 pt-3 border-t">
-                    <p class="text-xs font-semibold text-blue-700 mb-1">GRID3 Population Data</p>
-                    <p class="text-xs text-gray-600">Total: ${totalPop?.toLocaleString() || 'N/A'}</p>
-                    <p class="text-xs text-gray-600">Male: ${malePop?.toLocaleString() || 'N/A'} | Female: ${femalePop?.toLocaleString() || 'N/A'}</p>
-                  </div>
-                `);
-              }
-            }
-            
-            // Facility access data
-            if (grid3Layers.facility_access && grid3Data.facility_access) {
-              const accessFeature = grid3Data.facility_access.find((f: any) =>
-                f.get('lga_name') === lgaName
-              );
-              if (accessFeature) {
-                const travelTime = accessFeature.get('avg_travel_time');
-                grid3Sections.push(`
-                  <div class="mt-2">
-                    <p class="text-xs font-semibold text-green-700 mb-1">Facility Access</p>
-                    <p class="text-xs text-gray-600">Avg travel time: ${travelTime ? Math.round(travelTime) : 'N/A'} min</p>
-                  </div>
-                `);
-              }
-            }
-            
-            grid3Info = grid3Sections.join('');
-          }
-          
           // Ensure overlay is attached to the primary map when showing the popup
           overlay.setMap(map);
           overlay.setPosition(coords);
@@ -426,7 +373,6 @@ const QGISFilterableMap = () => {
               <p class="text-sm text-red-600 font-bold mt-2"><strong>Cases:</strong> ${feature.get('case_count') || 0}</p>
               <p class="text-sm text-gray-600"><strong>Incidence (per 1,000):</strong> ${incidenceText}</p>
               <p class="text-sm text-gray-600"><strong>LGA population:</strong> ${populationText}</p>
-              ${grid3Info}
             </div>
           `;
           popupElement.style.display = 'block';
@@ -569,115 +515,6 @@ const QGISFilterableMap = () => {
       console.error('Error loading secondary metric data:', error);
     } finally {
       setCompareLoading(false);
-    }
-  };
-
-  // Load GRID3 layer data
-  const loadGrid3Layer = async (layerId: string) => {
-    try {
-      const apiUrl = `${API_BASE_URL}/grid3/${layerId}`;
-      const response = await authenticatedFetch(apiUrl);
-
-      if (!response.ok) {
-        console.error(`GRID3 ${layerId} API request failed: ${response.status}`);
-        return;
-      }
-
-      const geojson = await response.json();
-      
-      // If layer is empty or error, skip
-      if (!geojson.features || geojson.features.length === 0) {
-        console.log(`No ${layerId} data available yet`);
-        return;
-      }
-
-      const features = new GeoJSON().readFeatures(geojson, {
-        featureProjection: 'EPSG:3857'
-      });
-
-      setGrid3Data(prev => ({ ...prev, [layerId]: features }));
-      
-      // Add to map if layer doesn't exist
-      if (!grid3LayerRefs.current[layerId]) {
-        const vectorSource = new VectorSource({ features });
-        const vectorLayer = new VectorLayer({
-          source: vectorSource,
-          style: getGrid3LayerStyle(layerId),
-          zIndex: 5 // Above boundary, below data points
-        });
-        
-        grid3LayerRefs.current[layerId] = vectorLayer;
-        
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.addLayer(vectorLayer);
-        }
-        if (secondaryMapInstanceRef.current) {
-          const vectorSource2 = new VectorSource({ features });
-          const vectorLayer2 = new VectorLayer({
-            source: vectorSource2,
-            style: getGrid3LayerStyle(layerId),
-            zIndex: 5
-          });
-          secondaryMapInstanceRef.current.addLayer(vectorLayer2);
-        }
-      }
-    } catch (error) {
-      console.error(`Error loading GRID3 ${layerId}:`, error);
-    }
-  };
-
-  // Style function for GRID3 layers
-  const getGrid3LayerStyle = (layerId: string) => {
-    return (feature: any) => {
-      if (layerId === 'population') {
-        const pop = feature.get('total_population') || 0;
-        const maxPop = 500000; // Adjust based on your data
-        const opacity = Math.min(pop / maxPop, 0.7);
-        return new Style({
-          fill: new Fill({ color: `rgba(100, 149, 237, ${opacity})` }),
-          stroke: new Stroke({ color: '#4169E1', width: 1 })
-        });
-      } else if (layerId === 'settlements') {
-        return new Style({
-          image: new Circle({
-            radius: 4,
-            fill: new Fill({ color: 'rgba(255, 140, 0, 0.6)' }),
-            stroke: new Stroke({ color: '#FF8C00', width: 1 })
-          })
-        });
-      } else if (layerId === 'facility_access') {
-        const accessTime = feature.get('avg_travel_time') || 0;
-        const color = accessTime > 60 ? 'rgba(220, 20, 60, 0.5)' : 'rgba(34, 139, 34, 0.5)';
-        return new Style({
-          fill: new Fill({ color }),
-          stroke: new Stroke({ color: '#333', width: 1 })
-        });
-      }
-      return new Style();
-    };
-  };
-
-  // Toggle GRID3 layer on/off
-  const toggleGrid3Layer = async (layerId: string, enabled: boolean) => {
-    setGrid3Layers(prev => ({ ...prev, [layerId]: enabled }));
-
-    if (enabled) {
-      // Load data if not already loaded
-      if (!grid3Data[layerId]) {
-        await loadGrid3Layer(layerId);
-      } else {
-        // Show existing layer
-        const layer = grid3LayerRefs.current[layerId];
-        if (layer) {
-          layer.setVisible(true);
-        }
-      }
-    } else {
-      // Hide layer
-      const layer = grid3LayerRefs.current[layerId];
-      if (layer) {
-        layer.setVisible(false);
-      }
     }
   };
 
@@ -1473,57 +1310,6 @@ const QGISFilterableMap = () => {
               <option key={ward} value={ward}>{ward}</option>
             ))}
           </select>
-        </div>
-
-        {/* GRID3 Social Indicator Layers */}
-        <div className="border-t pt-4">
-          <h3 className="font-medium mb-2 text-sm">GRID3 Indicator Layers</h3>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={grid3Layers.population}
-                  onChange={(e) => toggleGrid3Layer('population', e.target.checked)}
-                  className="h-4 w-4"
-                />
-                <span>Population Density</span>
-              </label>
-              <div className="w-4 h-4 bg-blue-400/50 border border-blue-600 rounded"></div>
-            </div>
-            <p className="text-xs text-gray-500 ml-6">LGA-level population from GRID3</p>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={grid3Layers.settlements}
-                  onChange={(e) => toggleGrid3Layer('settlements', e.target.checked)}
-                  className="h-4 w-4"
-                />
-                <span>Settlement Types</span>
-              </label>
-              <div className="w-4 h-4 bg-orange-400/60 border border-orange-600 rounded-full"></div>
-            </div>
-            <p className="text-xs text-gray-500 ml-6">Urban/rural classification</p>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={grid3Layers.facility_access}
-                  onChange={(e) => toggleGrid3Layer('facility_access', e.target.checked)}
-                  className="h-4 w-4"
-                />
-                <span>Facility Access</span>
-              </label>
-              <div className="flex gap-1">
-                <div className="w-3 h-4 bg-green-500/50 border border-gray-600"></div>
-                <div className="w-3 h-4 bg-red-500/50 border border-gray-600"></div>
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 ml-6">Travel time to nearest facility</p>
-          </div>
         </div>
 
         <button

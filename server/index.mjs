@@ -4,7 +4,6 @@ import cors from 'cors';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import pg from 'pg';
 import authRoutes from './routes/auth.routes.mjs';
-import grid3Routes from './routes/grid3.routes.mjs';
 
 const { Pool } = pg;
 
@@ -74,9 +73,6 @@ const DEFAULT_MODEL = process.env.GEMINI_MODEL || process.env.VITE_GEMINI_MODEL 
 
 // Mount auth routes
 app.use('/api/auth', authRoutes);
-
-// Mount GRID3 routes
-app.use('/api/grid3', grid3Routes);
 
 // ============ DATABASE API ENDPOINTS ============
 
