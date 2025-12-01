@@ -194,3 +194,53 @@ export const register = async (req, res) => {
     return res.status(500).json({ error: 'Registration failed' });
   }
 };
+
+/**
+ * List users whose accounts are not yet active (pending approval)
+ */
+export const listPendingUsers = async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, username, email, role, is_active, last_login FROM users WHERE is_active = false ORDER BY id DESC'
+    );
+
+    return res.json({
+      ok: true,
+      users: result.rows,
+    });
+  } catch (error) {
+    console.error('List pending users error:', error);
+    return res.status(500).json({ error: 'Failed to load pending users' });
+  }
+};
+
+/**
+ * Approve a user account (set is_active = true)
+ */
+export const approveUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = parseInt(String(id), 10);
+
+    if (!Number.isFinite(userId)) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
+    const result = await pool.query(
+      'UPDATE users SET is_active = true WHERE id = $1 RETURNING id, username, email, role, is_active, last_login',
+      [userId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.json({
+      ok: true,
+      user: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Approve user error:', error);
+    return res.status(500).json({ error: 'Failed to approve user' });
+  }
+};

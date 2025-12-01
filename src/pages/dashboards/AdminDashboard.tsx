@@ -329,14 +329,75 @@ import {
   Tooltip, ResponsiveContainer, LineChart, Line
 } from "recharts";
 import { useNavigate } from "react-router-dom";
+import { useAuthenticatedFetch } from "@/hooks/useAuthenticatedFetch";
+
+interface PendingUser {
+  id: number;
+  username: string;
+  email: string;
+  role: "admin" | "partner" | "user";
+  is_active: boolean;
+  last_login?: string | null;
+}
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const authenticatedFetch = useAuthenticatedFetch();
+  const API_BASE = import.meta.env.VITE_API_BASE || "https://api.anamgeohub.octaveanalytics.com/api";
+
+  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
+  const [isLoadingPending, setIsLoadingPending] = useState(false);
+  const [pendingError, setPendingError] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<number | null>(null);
 
   const handleLogout = () => {
     // Clear auth session if you’re using localStorage/sessionStorage
     // localStorage.removeItem("authToken");
     navigate("/"); // redirect to Home page
+  };
+
+  useEffect(() => {
+    const loadPendingUsers = async () => {
+      setIsLoadingPending(true);
+      setPendingError(null);
+      try {
+        const response = await authenticatedFetch(`${API_BASE}/admin/pending-users`);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) {
+          throw new Error(data.error || `Failed to load pending users (${response.status})`);
+        }
+
+        setPendingUsers(Array.isArray(data.users) ? data.users : []);
+      } catch (err: any) {
+        console.error("Failed to load pending users:", err);
+        setPendingError(err?.message || "Failed to load pending users.");
+      } finally {
+        setIsLoadingPending(false);
+      }
+    };
+
+    loadPendingUsers();
+  }, [API_BASE, authenticatedFetch]);
+
+  const handleApproveUser = async (userId: number) => {
+    setApprovingId(userId);
+    setPendingError(null);
+    try {
+      const response = await authenticatedFetch(`${API_BASE}/admin/users/${userId}/approve`, {
+        method: "POST",
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.ok === false) {
+        throw new Error(data.error || `Failed to approve user (${response.status})`);
+      }
+
+      setPendingUsers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (err: any) {
+      console.error("Approve user error:", err);
+      setPendingError(err?.message || "Failed to approve user.");
+    } finally {
+      setApprovingId((prev) => (prev === userId ? null : prev));
+    }
   };
 
   const systemMetrics = [
@@ -366,12 +427,6 @@ const AdminDashboard = () => {
     { type: "info", message: "Monthly data backup completed successfully", time: "1 day ago" },
     { type: "warning", message: "Storage capacity at 78%", time: "2 days ago" },
     { type: "success", message: "Security scan completed - no issues found", time: "3 days ago" },
-  ];
-
-  const pendingApprovals = [
-    { type: "Dataset Submission", item: "Community Health Survey 2024", user: "NGO Partner", priority: "Medium" },
-    { type: "User Access Request", item: "Enhanced Access Request", user: "Development Partner", priority: "High" },
-    { type: "Data Update", item: "TB Unit Data Q4", user: "MoH TB Unit", priority: "Low" },
   ];
 
   return (
@@ -557,48 +612,75 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Pending Approvals */}
+          {/* Pending User Access Requests */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Key className="h-5 w-5 text-primary" />
-                <span>Pending Approvals</span>
+                <span>Pending User Access Requests</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {pendingApprovals.map((item, index) => (
-                  <div
-                    key={index}
-                    className="p-3 border rounded-lg hover:border-primary/20 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm font-medium">{item.type}</div>
-                      <Badge
-                        variant="outline"
-                        className={
-                          item.priority === "High"
-                            ? "bg-red-50 text-red-700 border-red-200"
-                            : item.priority === "Medium"
-                            ? "bg-amber-50 text-amber-700 border-amber-200"
-                            : "bg-blue-50 text-blue-700 border-blue-200"
-                        }
-                      >
-                        {item.priority}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground mb-2">{item.item}</div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">From: {item.user}</span>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          Reject
-                        </Button>
-                        <Button size="sm">Approve</Button>
+                {pendingError && (
+                  <p className="text-sm text-red-600">{pendingError}</p>
+                )}
+                {isLoadingPending && (
+                  <p className="text-sm text-muted-foreground">Loading pending requests...</p>
+                )}
+                {!isLoadingPending && pendingUsers.length === 0 && !pendingError && (
+                  <p className="text-sm text-muted-foreground">
+                    No pending admin or partner access requests.
+                  </p>
+                )}
+                {pendingUsers.map((user) => {
+                  const priority = user.role === "admin" ? "High" : user.role === "partner" ? "Medium" : "Low";
+                  const priorityClasses =
+                    priority === "High"
+                      ? "bg-red-50 text-red-700 border-red-200"
+                      : priority === "Medium"
+                      ? "bg-amber-50 text-amber-700 border-amber-200"
+                      : "bg-blue-50 text-blue-700 border-blue-200";
+                  const itemLabel =
+                    user.role === "admin"
+                      ? "Administrator access request"
+                      : user.role === "partner"
+                      ? "Partner access request"
+                      : "User account";
+                  return (
+                    <div
+                      key={user.id}
+                      className="p-3 border rounded-lg hover:border-primary/20 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-sm font-medium">{itemLabel}</div>
+                        <Badge variant="outline" className={priorityClasses}>
+                          {priority}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {user.username} ({user.email})
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">
+                          Role requested: {user.role}
+                        </span>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" disabled>
+                            Reject
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleApproveUser(user.id)}
+                            disabled={approvingId === user.id}
+                          >
+                            {approvingId === user.id ? "Approving..." : "Approve"}
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

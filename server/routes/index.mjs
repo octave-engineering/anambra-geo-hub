@@ -8,7 +8,8 @@ import facilitiesRoutes from './facilities.routes.mjs';
 import healthMetricsRoutes from './health-metrics.routes.mjs';
 import geminiRoutes from './gemini.routes.mjs';
 import authRoutes from './auth.routes.mjs';
-import requireAuth from '../middleware/auth.middleware.mjs';
+import adminRoutes from './admin.routes.mjs';
+import requireAuth, { requireAdmin } from '../middleware/auth.middleware.mjs';
 
 const router = express.Router();
 
@@ -21,6 +22,8 @@ router.use('/lgas', requireAuth, facilitiesRoutes); // Legacy support
 router.use('/wards', requireAuth, facilitiesRoutes); // Legacy support
 router.use('/stats', requireAuth, facilitiesRoutes); // Legacy support
 router.use('/health-metrics', requireAuth, healthMetricsRoutes);
+// Admin-only endpoints (user approvals, system admin tools)
+router.use('/admin', requireAuth, requireAdmin, adminRoutes);
 router.use('/', geminiRoutes); // Health and generate endpoints
 
 export default router;

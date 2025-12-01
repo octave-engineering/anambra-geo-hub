@@ -64,4 +64,20 @@ export const requireAuth = (req, res, next) => {
   return res.status(401).json({ error: 'Unauthorized' });
 };
 
+// Admin-only middleware: requires an authenticated user JWT with role 'admin'
+export const requireAdmin = (req, res, next) => {
+  // If auth is globally disabled, admin endpoints should not be usable
+  if (!isAuthEnabled()) {
+    return res.status(403).json({ error: 'Admin access not available when auth is disabled' });
+  }
+
+  const user = req.user;
+
+  if (user && user.type === 'user' && user.role === 'admin') {
+    return next();
+  }
+
+  return res.status(403).json({ error: 'Admin access required' });
+};
+
 export default requireAuth;
