@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { listPendingUsers, approveUser } from '../controllers/auth.controller.mjs';
+import { listPendingUsers, approveUser, rejectUser } from '../controllers/auth.controller.mjs';
 
 const router = express.Router();
 
@@ -13,5 +13,8 @@ router.get('/pending-users', listPendingUsers);
 
 // POST /api/admin/users/:id/approve - activate a user account
 router.post('/users/:id/approve', approveUser);
+
+// DELETE /api/admin/users/:id/reject - reject and delete a pending user account
+router.delete('/users/:id/reject', rejectUser);
 
 export default router;

@@ -342,7 +342,7 @@ const QGISFilterableMap = () => {
         if (geometry instanceof Point) {
           const coords = geometry.getCoordinates();
           const incidenceRaw = feature.get('incidence_per_1000');
-          const populationRaw = feature.get('population');
+          const populationRaw = feature.get('population') || feature.get('lga_population') || feature.get('pop');
           const incidenceValue =
             incidenceRaw !== undefined && incidenceRaw !== null
               ? Number(incidenceRaw)
@@ -444,6 +444,8 @@ const QGISFilterableMap = () => {
       }
       
       const geojson = await response.json();
+      console.log('🔍 Raw GeoJSON Structure:', geojson);
+      console.log('🔍 First feature properties:', geojson?.features?.[0]?.properties);
 
       // Process GeoJSON features
       const features = new GeoJSON().readFeatures(geojson, {
@@ -452,11 +454,26 @@ const QGISFilterableMap = () => {
       
       allFeaturesRef.current = features;
 
+      // Debug: Log first feature's available properties
+      if (features.length > 0) {
+        const firstFeature = features[0];
+        const props = firstFeature.getProperties();
+        console.log('🔍 Available feature properties:', Object.keys(props));
+        console.log('🔍 Sample feature data:', {
+          lga_name: firstFeature.get('lga_name'),
+          population: firstFeature.get('population'),
+          lga_population: firstFeature.get('lga_population'),
+          pop: firstFeature.get('pop'),
+          all_props: props
+        });
+      }
+
       // Compute total state population from unique LGA populations
       const lgaPopMap = new Map<string, number>();
       for (const f of features) {
         const lgaName = f.get('lga_name');
-        const popRaw = f.get('population');
+        // Try multiple possible population field names
+        const popRaw = f.get('population') || f.get('lga_population') || f.get('pop');
         const popVal =
           popRaw !== undefined && popRaw !== null
             ? Number(popRaw)
@@ -467,7 +484,9 @@ const QGISFilterableMap = () => {
         }
       }
       const totalPop = Array.from(lgaPopMap.values()).reduce((acc, val) => acc + val, 0);
-      setStatePopulation(totalPop || null);
+      console.log('🔍 Population Debug - LGA Pop Map:', Array.from(lgaPopMap.entries()));
+      console.log('🔍 Population Debug - Total State Population:', totalPop);
+      setStatePopulation(totalPop > 0 ? totalPop : null);
       
       // Extract unique values for filters
       const uniqueLgas = [...new Set(features.map((f: any) => f.get('lga_name')).filter(Boolean))].sort();
@@ -531,7 +550,26 @@ const QGISFilterableMap = () => {
         source.clear();
       }
     }
-  }, [filters.lga, filters.ward, filters.period, filters.minIncidence, filters.maxIncidence, valueMode, compareEnabled]);
+  }, [filters.lga, filters.ward, filters.period, filters.minIncidence, filters.maxIncidence, valueMode, compareEnabled, viewMode]);
+
+  // Update selected LGA population when LGA filter changes
+  useEffect(() => {
+    if (filters.lga && allFeaturesRef.current.length > 0) {
+      // Find population for the selected LGA from features
+      const lgaFeature = allFeaturesRef.current.find(
+        (f: any) => f.get('lga_name') === filters.lga
+      );
+      if (lgaFeature) {
+        const popRaw = lgaFeature.get('population') || lgaFeature.get('lga_population') || lgaFeature.get('pop');
+        const popVal = popRaw !== undefined && popRaw !== null ? Number(popRaw) : NaN;
+        setSelectedLga(filters.lga);
+        setSelectedLgaPopulation(!Number.isNaN(popVal) && popVal > 0 ? popVal : null);
+      }
+    } else {
+      setSelectedLga(null);
+      setSelectedLgaPopulation(null);
+    }
+  }, [filters.lga]);
 
   // Ensure comparison layer is cleared in split view (blue dots only on secondary map in that mode)
   useEffect(() => {
@@ -663,7 +701,7 @@ const QGISFilterableMap = () => {
         if (geometry instanceof Point) {
           const coords = geometry.getCoordinates();
           const incidenceRaw = feature.get('incidence_per_1000');
-          const populationRaw = feature.get('population');
+          const populationRaw = feature.get('population') || feature.get('lga_population') || feature.get('pop');
           const incidenceValue =
             incidenceRaw !== undefined && incidenceRaw !== null
               ? Number(incidenceRaw)
@@ -952,11 +990,22 @@ const QGISFilterableMap = () => {
     }
 
     // In split view, render comparison on the secondary map's data layer.
-    if (viewMode === 'split' && secondaryDataLayerRef.current) {
-      const source = secondaryDataLayerRef.current.getSource();
-      if (source) {
-        source.clear();
-        source.addFeatures(filtered);
+    // IMPORTANT: Clear the comparison layer on primary map in split view
+    if (viewMode === 'split') {
+      // Clear comparison layer on primary map (no blue dots there in split mode)
+      if (compareLayerRef.current) {
+        const primaryCompareSource = compareLayerRef.current.getSource();
+        if (primaryCompareSource) {
+          primaryCompareSource.clear();
+        }
+      }
+      // Add features to secondary map
+      if (secondaryDataLayerRef.current) {
+        const source = secondaryDataLayerRef.current.getSource();
+        if (source) {
+          source.clear();
+          source.addFeatures(filtered);
+        }
       }
     }
 
@@ -1099,7 +1148,7 @@ const QGISFilterableMap = () => {
         <h2 className="text-xl font-bold mb-2">Health Metrics Map</h2>
       </div>
       <div className="p-4 space-y-4">
-        <div>
+        <div data-tour="metric-select">
           <label className="block text-sm font-medium mb-1">Primary health metric</label>
           <select
             value={filters.metric}
@@ -1139,6 +1188,7 @@ const QGISFilterableMap = () => {
               value={secondaryMetricId}
               onChange={(e) => setSecondaryMetricId(e.target.value)}
               className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
+              disabled={compareLoading}
             >
               <option value="">Select metric</option>
               {metrics.map(metric => (
@@ -1155,9 +1205,10 @@ const QGISFilterableMap = () => {
               Secondary metric is shown as blue circles. Summary and time-series chart use the primary metric.
             </p>
             {compareLoading && (
-              <p className="text-xs text-gray-500 mt-1">
-                Loading secondary metric data...
-              </p>
+              <div className="flex items-center gap-2 mt-2 text-xs text-blue-600">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                <span>Loading secondary metric data...</span>
+              </div>
             )}
           </div>
         )}
@@ -1195,7 +1246,7 @@ const QGISFilterableMap = () => {
           </div>
         )}
 
-        <div>
+        <div data-tour="value-mode">
           <label className="block text-sm font-medium mb-1">Value Type</label>
           <select
             value={valueMode}
@@ -1217,7 +1268,7 @@ const QGISFilterableMap = () => {
           </select>
         </div>
 
-        <div>
+        <div data-tour="incidence-range">
           <label className="block text-sm font-medium mb-1">
             {valueMode === 'incidence' ? 'Incidence filter (per 1,000)' : 'Number of cases filter'}
           </label>
@@ -1250,7 +1301,7 @@ const QGISFilterableMap = () => {
           </div>
         )}
 
-        <div>
+        <div data-tour="period-filter">
           <label className="block text-sm font-medium mb-1">Period</label>
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -1283,7 +1334,7 @@ const QGISFilterableMap = () => {
           </div>
         </div>
 
-        <div>
+        <div data-tour="lga-filter">
           <label className="block text-sm font-medium mb-1">LGA</label>
           <select
             value={filters.lga}
@@ -1297,7 +1348,7 @@ const QGISFilterableMap = () => {
           </select>
         </div>
 
-        <div>
+        <div data-tour="ward-filter">
           <label className="block text-sm font-medium mb-1">Ward</label>
           <select
             value={filters.ward}
@@ -1476,7 +1527,7 @@ const QGISFilterableMap = () => {
   return (
     <div className="relative h-full">
       {/* Population summary bar */}
-      <div className="absolute top-3 right-4 z-10 bg-white/95 rounded-lg shadow px-4 py-2 text-xs md:text-sm">
+      <div data-tour="population-display" className="absolute top-3 right-4 z-10 bg-white/95 rounded-lg shadow px-4 py-2 text-xs md:text-sm">
         <div className="font-semibold">
           {selectedLga && selectedLgaPopulation != null
             ? `${selectedLga} population`
@@ -1611,9 +1662,16 @@ const QGISFilterableMap = () => {
 
       {/* Burden summary overlay */}
       {summary && summaryOpen && (
-        <div className="absolute right-4 bottom-4 z-10 bg-white/95 border rounded-lg shadow-lg p-4 w-80 max-w-[90vw] text-sm space-y-3">
+        <div 
+          data-tour="burden-summary" 
+          className={`absolute right-4 bottom-20 z-10 bg-white/95 border rounded-lg shadow-lg p-4 text-sm space-y-3 ${
+            secondarySummary ? 'w-[700px] max-w-[95vw]' : 'w-80 max-w-[90vw]'
+          }`}
+        >
           <div className="flex justify-between items-baseline">
-            <h3 className="font-semibold">Burden summary</h3>
+            <h3 className="font-semibold">
+              {secondarySummary ? 'Comparative Burden Summary' : 'Burden Summary'}
+            </h3>
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500">Current filters</span>
               <button
@@ -1625,80 +1683,190 @@ const QGISFilterableMap = () => {
               </button>
             </div>
           </div>
-          {secondarySummary && (
-            <div className="border rounded-md p-2 text-xs space-y-1">
-              <div className="flex justify-between">
-                <span className="font-medium truncate">
-                  Primary: {currentMetric.name}
-                </span>
-                <span>{summary.totalCases.toLocaleString()} cases</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium truncate">
-                  Secondary: {secondaryMetric?.name || 'Secondary metric'}
-                </span>
-                <span>{secondarySummary.totalCases.toLocaleString()} cases</span>
-              </div>
-              {secondarySummary.totalCases > 0 && (
-                <div className="flex justify-between text-[11px] text-gray-600">
-                  <span>Primary / Secondary cases</span>
-                  <span>
-                    {(summary.totalCases / secondarySummary.totalCases).toFixed(2)} ×
+
+          {secondarySummary ? (
+            /* Comparison Mode - Side by Side */
+            <div className="space-y-3">
+              {/* Quick comparison */}
+              <div className="border rounded-md p-2 text-xs bg-amber-50 border-amber-200">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Case Ratio (Primary / Secondary)</span>
+                  <span className="font-bold text-amber-700">
+                    {secondarySummary.totalCases > 0 
+                      ? `${(summary.totalCases / secondarySummary.totalCases).toFixed(2)} ×`
+                      : 'N/A'}
                   </span>
                 </div>
-              )}
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-xs text-gray-500">Total cases</p>
-              <p className="text-base font-semibold">{summary.totalCases.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Facilities</p>
-              <p className="text-base font-semibold">{summary.totalFacilities.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">LGAs</p>
-              <p className="text-base font-semibold">{summary.totalLgas}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Wards</p>
-              <p className="text-base font-semibold">{summary.totalWards}</p>
-            </div>
-          </div>
+              </div>
 
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div>
-              <p className="font-medium mb-1">Top 5 LGAs</p>
-              <ul className="space-y-1">
-                {summary.topLgas.map(item => (
-                  <li key={item.lga} className="flex justify-between">
-                    <span className="truncate">{item.lga}</span>
-                    <span className="font-semibold">{item.totalCases}</span>
-                  </li>
-                ))}
-              </ul>
+              {/* Side by side metrics */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Primary Metric */}
+                <div className="space-y-3">
+                  <div className="border-b pb-2">
+                    <h4 className="font-semibold text-red-700 truncate">
+                      Primary: {currentMetric.name}
+                    </h4>
+                  </div>
+                  
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-xs text-gray-500">Total cases</p>
+                      <p className="text-base font-semibold">{summary.totalCases.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Facilities</p>
+                      <p className="text-base font-semibold">{summary.totalFacilities.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">LGAs</p>
+                      <p className="text-base font-semibold">{summary.totalLgas}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Wards</p>
+                      <p className="text-base font-semibold">{summary.totalWards}</p>
+                    </div>
+                  </div>
+
+                  {/* Top 5 LGAs */}
+                  <div>
+                    <p className="font-medium mb-1 text-xs">Top 5 LGAs</p>
+                    <ul className="space-y-1 text-xs">
+                      {summary.topLgas.map(item => (
+                        <li key={item.lga} className="flex justify-between">
+                          <span className="truncate">{item.lga}</span>
+                          <span className="font-semibold">{item.totalCases}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Bottom 5 LGAs */}
+                  <div>
+                    <p className="font-medium mb-1 text-xs">Bottom 5 LGAs</p>
+                    <ul className="space-y-1 text-xs">
+                      {summary.bottomLgas.map(item => (
+                        <li key={item.lga} className="flex justify-between">
+                          <span className="truncate">{item.lga}</span>
+                          <span className="font-semibold">{item.totalCases}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Secondary Metric */}
+                <div className="space-y-3">
+                  <div className="border-b pb-2">
+                    <h4 className="font-semibold text-blue-700 truncate">
+                      Secondary: {secondaryMetric?.name || 'Secondary metric'}
+                    </h4>
+                  </div>
+                  
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-xs text-gray-500">Total cases</p>
+                      <p className="text-base font-semibold">{secondarySummary.totalCases.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Facilities</p>
+                      <p className="text-base font-semibold">{secondarySummary.totalFacilities.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">LGAs</p>
+                      <p className="text-base font-semibold">{secondarySummary.totalLgas}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Wards</p>
+                      <p className="text-base font-semibold">{secondarySummary.totalWards}</p>
+                    </div>
+                  </div>
+
+                  {/* Top 5 LGAs */}
+                  <div>
+                    <p className="font-medium mb-1 text-xs">Top 5 LGAs</p>
+                    <ul className="space-y-1 text-xs">
+                      {secondarySummary.topLgas.map(item => (
+                        <li key={item.lga} className="flex justify-between">
+                          <span className="truncate">{item.lga}</span>
+                          <span className="font-semibold">{item.totalCases}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Bottom 5 LGAs */}
+                  <div>
+                    <p className="font-medium mb-1 text-xs">Bottom 5 LGAs</p>
+                    <ul className="space-y-1 text-xs">
+                      {secondarySummary.bottomLgas.map(item => (
+                        <li key={item.lga} className="flex justify-between">
+                          <span className="truncate">{item.lga}</span>
+                          <span className="font-semibold">{item.totalCases}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="font-medium mb-1">Bottom 5 LGAs</p>
-              <ul className="space-y-1">
-                {summary.bottomLgas.map(item => (
-                  <li key={item.lga} className="flex justify-between">
-                    <span className="truncate">{item.lga}</span>
-                    <span className="font-semibold">{item.totalCases}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          ) : (
+            /* Single Metric Mode - Original Layout */
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-gray-500">Total cases</p>
+                  <p className="text-base font-semibold">{summary.totalCases.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Facilities</p>
+                  <p className="text-base font-semibold">{summary.totalFacilities.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">LGAs</p>
+                  <p className="text-base font-semibold">{summary.totalLgas}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Wards</p>
+                  <p className="text-base font-semibold">{summary.totalWards}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <p className="font-medium mb-1">Top 5 LGAs</p>
+                  <ul className="space-y-1">
+                    {summary.topLgas.map(item => (
+                      <li key={item.lga} className="flex justify-between">
+                        <span className="truncate">{item.lga}</span>
+                        <span className="font-semibold">{item.totalCases}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-medium mb-1">Bottom 5 LGAs</p>
+                  <ul className="space-y-1">
+                    {summary.bottomLgas.map(item => (
+                      <li key={item.lga} className="flex justify-between">
+                        <span className="truncate">{item.lga}</span>
+                        <span className="font-semibold">{item.totalCases}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {!chartOpen && yearSeries.length > 0 && (
         <button
           type="button"
-          className="absolute left-4 bottom-4 z-10 px-3 py-1.5 bg-white/90 border rounded-full text-xs shadow"
+          className="absolute left-4 bottom-20 z-10 px-4 py-2.5 bg-white/90 border rounded-full text-sm font-medium shadow-lg hover:bg-white transition-colors"
           onClick={() => setChartOpen(true)}
         >
           Show chart
@@ -1708,7 +1876,7 @@ const QGISFilterableMap = () => {
       {!summaryOpen && summary && (
         <button
           type="button"
-          className="absolute right-4 bottom-4 z-10 px-3 py-1.5 bg-white/90 border rounded-full text-xs shadow"
+          className="absolute right-4 bottom-20 z-10 px-4 py-2.5 bg-white/90 border rounded-full text-sm font-medium shadow-lg hover:bg-white transition-colors"
           onClick={() => setSummaryOpen(true)}
         >
           Show summary

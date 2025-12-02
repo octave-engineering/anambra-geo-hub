@@ -125,12 +125,12 @@ const HomePage = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
-              <Button
-                asChild
-                size="lg"
+              <Button 
+                asChild 
+                size="lg" 
                 className="w-full sm:w-auto px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg bg-[#ffaa00] border-2 border-[#ffaa00] text-white hover:bg-[#ffaa00] hover:border-[#ffaa00] transition-all duration-200 hover:shadow-lg"
               >
-                <Link to="/dataportal" className="whitespace-nowrap flex items-center justify-center">
+                <Link to="/gis-mapping" className="whitespace-nowrap flex items-center justify-center">
                   Browse Repository
                   <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" />
                 </Link>
@@ -283,7 +283,7 @@ const HomePage = () => {
               size="lg" 
               className="w-full sm:w-auto px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg bg-[#ffaa00] border-2 border-[#ffaa00] text-white hover:bg-[#ffaa00] hover:border-[#ffaa00] transition-all duration-200 hover:shadow-lg"
             >
-              <Link to="/dataportal" className="flex items-center justify-center">
+              <Link to="/gismapping" className="flex items-center justify-center">
                 Browse Repository
                 <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" />
               </Link>

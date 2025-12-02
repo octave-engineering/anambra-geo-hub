@@ -53,7 +53,8 @@ export const getHealthMetrics = async (req, res, next) => {
         END as incidence_per_1000
       FROM ${metricConfig.view} m
       LEFT JOIN grid3_processed.population_lga p
-        ON LOWER(TRIM(m.lga_name)) = LOWER(TRIM(p.shortname))
+        ON REPLACE(REPLACE(LOWER(TRIM(m.lga_name)), ' local government area', ''), ' lga', '') =
+           REPLACE(REPLACE(LOWER(TRIM(p.shortname)), ' local government area', ''), ' lga', '')
        AND p.year = (SELECT MAX(year) FROM grid3_processed.population_lga)
       WHERE m.geom IS NOT NULL
     `;

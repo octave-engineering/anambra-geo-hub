@@ -244,3 +244,35 @@ export const approveUser = async (req, res) => {
     return res.status(500).json({ error: 'Failed to approve user' });
   }
 };
+
+/**
+ * Reject a user account (delete from database)
+ */
+export const rejectUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = parseInt(String(id), 10);
+
+    if (!Number.isFinite(userId)) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
+    const result = await pool.query(
+      'DELETE FROM users WHERE id = $1 AND is_active = false RETURNING id, username, email',
+      [userId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found or already active' });
+    }
+
+    return res.json({
+      ok: true,
+      message: 'User request rejected successfully',
+      user: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Reject user error:', error);
+    return res.status(500).json({ error: 'Failed to reject user' });
+  }
+};

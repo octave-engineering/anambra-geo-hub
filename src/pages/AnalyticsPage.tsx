@@ -170,29 +170,37 @@ const AnalyticsPage: React.FC = () => {
     }
     setLgaYearSeries(lgaSeriesMap);
 
-    // 3. Compute seasonality (average by month across all years)
+    // 3. Compute seasonality (average state total by month across all years)
     const monthTotals = new Map<number, number>();
-    const monthCounts = new Map<number, number>();
+    const monthYears = new Map<number, Set<number>>();
     for (const f of features) {
       const periodRaw = f.get('period');
       if (!periodRaw) continue;
       const periodStr = String(periodRaw);
       if (periodStr.length < 6) continue;
+      const year = Number(periodStr.slice(0, 4));
       const month = Number(periodStr.slice(4, 6));
-      if (isNaN(month) || month < 1 || month > 12) continue;
+      if (isNaN(year) || isNaN(month) || month < 1 || month > 12) continue;
       const cases = Number(f.get('case_count') || 0);
+      // Accumulate total state cases for this month across all years
       monthTotals.set(month, (monthTotals.get(month) || 0) + cases);
-      monthCounts.set(month, (monthCounts.get(month) || 0) + 1);
+      // Track distinct years that have data for this month
+      if (!monthYears.has(month)) {
+        monthYears.set(month, new Set());
+      }
+      monthYears.get(month)!.add(year);
     }
 
     const seasonality = Array.from({ length: 12 }, (_, i) => {
       const month = i + 1;
       const total = monthTotals.get(month) || 0;
-      const count = monthCounts.get(month) || 1;
+      const yearSet = monthYears.get(month);
+      const yearCount = yearSet ? yearSet.size : 0;
       return {
         month,
         label: MONTH_LABELS[i],
-        avgCases: count > 0 ? total / count : 0,
+        // Average monthly state total across the number of years with data
+        avgCases: yearCount > 0 ? total / yearCount : 0,
       };
     });
     setSeasonalitySeries(seasonality);
@@ -348,6 +356,53 @@ const AnalyticsPage: React.FC = () => {
     setPriorityLGAs(priorities);
   };
 
+  const handleExport = () => {
+    if (!lgaRankings.length) return;
+
+    const escapeCsv = (value: any) => {
+      if (value === null || value === undefined) return "";
+      const str = String(value);
+      if (str.includes("\"") || str.includes(",") || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const header = [
+      "Metric",
+      "LGA",
+      "TotalCases",
+      "Facilities",
+      "Population",
+      "IncidencePer1000",
+    ];
+
+    const rows = lgaRankings.map(lga => [
+      currentMetric.name,
+      lga.lga,
+      lga.totalCases,
+      lga.facilities,
+      lga.population ?? "",
+      lga.incidence ?? "",
+    ]);
+
+    const csvLines = [header, ...rows]
+      .map(row => row.map(escapeCsv).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvLines], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    const safeMetricId = selectedMetric || currentMetric.id;
+    link.href = url;
+    link.setAttribute("download", `analytics_${safeMetricId}_${timestamp}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const totalCases = lgaRankings.reduce((sum, lga) => sum + lga.totalCases, 0);
   const totalFacilities = lgaRankings.reduce((sum, lga) => sum + lga.facilities, 0);
   const totalLGAs = lgaRankings.length;
@@ -405,7 +460,13 @@ const AnalyticsPage: React.FC = () => {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" size="sm" className="w-full md:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full md:w-auto"
+              onClick={handleExport}
+              disabled={!lgaRankings.length}
+            >
               <Download className="h-4 w-4 mr-2" /> Export
             </Button>
           </div>
